@@ -38,7 +38,7 @@ const SEED: Application[] = [
 ];
 
 const BLANK: Omit<Application, "id"> = {
-  company: "", role: "", location: "", status: "applied", date: new Date().toISOString().split("T")[0], url: "", notes: "",
+  company: "", role: "", location: "", status: "applied", date: "2026-10-25", url: "", notes: "",
 };
 
 export default function ApplicationsPage() {

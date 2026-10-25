@@ -67,8 +67,17 @@ export default function DashboardPage() {
   const isNew = true; // In production: check for real interview/resume data
 
   const [studentProfile, setStudentProfile] = React.useState<any>(profile?.student_profile || null);
+  const [currentDateStr, setCurrentDateStr] = React.useState<string>("");
 
   React.useEffect(() => {
+    setCurrentDateStr(
+      new Date().toLocaleDateString("en-IN", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    );
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
@@ -96,13 +105,8 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-[var(--color-surface-900)]">
               Hello, {firstName} 👋
             </h1>
-            <p className="text-sm text-[var(--color-surface-500)] mt-0.5">
-              {new Date().toLocaleDateString("en-IN", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+            <p className="text-sm text-[var(--color-surface-500)] mt-0.5 min-h-[20px]">
+              {currentDateStr || "Welcome to your placement preparation portal"}
             </p>
           </div>
           <Link href="/interviews/new" className="btn btn-primary btn-md hidden sm:flex">

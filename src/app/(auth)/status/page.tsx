@@ -43,7 +43,11 @@ export default function AccountStatusPage() {
   const [collegeId, setCollegeId] = useState("");
   const [department, setDepartment] = useState("");
   const [academicYear, setAcademicYear] = useState("");
-  const [graduationYear, setGraduationYear] = useState<number>(new Date().getFullYear() + 1);
+  const [graduationYear, setGraduationYear] = useState<number>(2026);
+
+  useEffect(() => {
+    setGraduationYear(new Date().getFullYear() + 1);
+  }, []);
 
   const fetchSession = async () => {
     try {
@@ -420,7 +424,7 @@ export default function AccountStatusPage() {
 
       {/* Footer */}
       <div className="max-w-2xl mx-auto w-full text-center text-xs text-gray-400 py-4 border-t border-gray-200">
-        &copy; {new Date().getFullYear()} Karpagam College of Engineering &bull; SkillMatch AI Placement Portal
+        &copy; 2026 Karpagam College of Engineering &bull; SkillMatch AI Placement Portal
       </div>
     </div>
   );

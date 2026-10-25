@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Mic,
@@ -50,7 +50,7 @@ interface InterviewQuestion {
 
 type InterviewPhase = "ready" | "speaking" | "listening" | "processing_answer" | "completed";
 
-export default function InterviewStudioPage() {
+function InterviewStudioContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const router = useRouter();
 
@@ -1015,3 +1015,21 @@ export default function InterviewStudioPage() {
     </div>
   );
 }
+
+export default function InterviewStudioPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen w-full items-center justify-center bg-[#0d1117] text-white">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-white/60">Loading interview studio...</span>
+          </div>
+        </div>
+      }
+    >
+      <InterviewStudioContent />
+    </Suspense>
+  );
+}
+
