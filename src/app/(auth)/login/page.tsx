@@ -83,8 +83,9 @@ function LoginContent() {
         return;
       }
 
-      toast.success("Welcome back!");
-      router.push(data.redirect || redirectTo);
+      toast.success("Welcome back! Redirecting to your dashboard...");
+      const targetDestination = data.redirect || redirectTo;
+      window.location.href = targetDestination;
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to sign in. Please verify your credentials.");
       toast.error(err.message || "Sign in failed");

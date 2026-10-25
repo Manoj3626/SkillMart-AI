@@ -85,12 +85,6 @@ export function Navbar() {
             Success Stories
           </Link>
           <Link
-            href="/pricing"
-            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-          >
-            Pricing
-          </Link>
-          <Link
             href="/resources"
             className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
           >
@@ -141,9 +135,6 @@ export function Navbar() {
           </Link>
           <Link href="/success-stories" className="text-sm font-medium text-slate-700 hover:text-slate-900 py-2 px-3 rounded-lg hover:bg-slate-50">
             Success Stories
-          </Link>
-          <Link href="/pricing" className="text-sm font-medium text-slate-700 hover:text-slate-900 py-2 px-3 rounded-lg hover:bg-slate-50">
-            Pricing
           </Link>
           <Link href="/resources" className="text-sm font-medium text-slate-700 hover:text-slate-900 py-2 px-3 rounded-lg hover:bg-slate-50">
             Resources

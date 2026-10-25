@@ -374,6 +374,9 @@ function InterviewApp() {
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const isAudioPlayingRef = useRef(false);
   const preloadedGreetingAudioRef = useRef<Blob | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechWatchdogRef = useRef<NodeJS.Timeout | null>(null);
+  const speechHeartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
   // Speech Recognition (Mic) Refs
   const recognitionRef = useRef<any>(null);
@@ -521,13 +524,26 @@ function InterviewApp() {
       audioPlayerRef.current.pause();
       audioPlayerRef.current.currentTime = 0;
     }
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (speechWatchdogRef.current) {
+      clearTimeout(speechWatchdogRef.current);
+      speechWatchdogRef.current = null;
     }
+    if (speechHeartbeatRef.current) {
+      clearInterval(speechHeartbeatRef.current);
+      speechHeartbeatRef.current = null;
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      try {
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+        }
+      } catch {}
+    }
+    currentUtteranceRef.current = null;
     isAudioPlayingRef.current = false;
   }, []);
 
-  // Speaks aloud using server-generated high-fidelity TTS audio, falling back to Web Speech API
+  // Speaks aloud using speech synthesis engine with auto-recovery watchdog
   const speakAloud = useCallback(
     async (text: string, onDone?: () => void) => {
       stopSpeech();
@@ -538,97 +554,94 @@ function InterviewApp() {
         .replace(/\[Skipped\]/g, "Question skipped.")
         .trim();
 
-      const onSpeechFinished = () => {
-        isAudioPlayingRef.current = false;
-        onDone?.();
-      };
-
-      try {
-        // If we have preloaded audio for this exact text (e.g. Question 1 greeting)
-        let audioBlob: Blob | null = null;
-        if (preloadedGreetingAudioRef.current) {
-          audioBlob = preloadedGreetingAudioRef.current;
-          preloadedGreetingAudioRef.current = null;
-        } else {
-          const res = await fetch("/api/interview/tts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: cleanText }),
-          });
-          if (res.ok) {
-            audioBlob = await res.blob();
-          }
-        }
-
-        if (audioBlob && audioPlayerRef.current) {
-          const audioUrl = URL.createObjectURL(audioBlob);
-          const player = audioPlayerRef.current;
-          player.src = audioUrl;
-
-          player.onplay = () => {
-            isAudioPlayingRef.current = true;
-          };
-          player.onended = () => {
-            URL.revokeObjectURL(audioUrl);
-            onSpeechFinished();
-          };
-          player.onerror = () => {
-            URL.revokeObjectURL(audioUrl);
-            // Fallback to browser Web Speech API
-            fallbackBrowserSpeak(cleanText, onSpeechFinished);
-          };
-
-          await player.play();
-          return;
-        }
-      } catch (err) {
-        console.warn("Server TTS playback issue, using browser Web Speech API fallback:", err);
-      }
-
-      // Browser Web Speech API fallback
-      fallbackBrowserSpeak(cleanText, onSpeechFinished);
+      fallbackBrowserSpeak(cleanText, onDone);
     },
     [stopSpeech]
   );
 
   const fallbackBrowserSpeak = (text: string, onEnd?: () => void) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
+    let hasFinished = false;
+    const onSpeechFinished = () => {
+      if (hasFinished) return;
+      hasFinished = true;
+      if (speechWatchdogRef.current) {
+        clearTimeout(speechWatchdogRef.current);
+        speechWatchdogRef.current = null;
+      }
+      if (speechHeartbeatRef.current) {
+        clearInterval(speechHeartbeatRef.current);
+        speechHeartbeatRef.current = null;
+      }
+      currentUtteranceRef.current = null;
+      isAudioPlayingRef.current = false;
       onEnd?.();
+    };
+
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      onSpeechFinished();
       return;
     }
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.02;
+    try {
+      window.speechSynthesis.resume();
+    } catch {}
 
-    const voices = window.speechSynthesis.getVoices();
-    const preferred =
-      voices.find(
-        (v) =>
-          v.lang.startsWith("en") &&
-          (v.name.includes("Google") ||
-            v.name.includes("Natural") ||
-            v.name.includes("Samantha") ||
-            v.name.includes("Female"))
-      ) || voices.find((v) => v.lang.startsWith("en"));
+    setTimeout(() => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        currentUtteranceRef.current = utterance;
+        if (typeof window !== "undefined") {
+          (window as any).__activeUtterance = utterance;
+        }
 
-    if (preferred) utterance.voice = preferred;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.03;
 
-    utterance.onstart = () => {
-      isAudioPlayingRef.current = true;
-    };
-    utterance.onend = () => {
-      isAudioPlayingRef.current = false;
-      onEnd?.();
-    };
-    utterance.onerror = () => {
-      isAudioPlayingRef.current = false;
-      onEnd?.();
-    };
+        const voices = window.speechSynthesis.getVoices();
+        const preferred =
+          voices.find(
+            (v) =>
+              v.lang.startsWith("en") &&
+              (v.name.includes("Google") ||
+                v.name.includes("Natural") ||
+                v.name.includes("Samantha") ||
+                v.name.includes("Zira") ||
+                v.name.includes("Female"))
+          ) || voices.find((v) => v.lang.startsWith("en"));
 
-    window.speechSynthesis.speak(utterance);
+        if (preferred) utterance.voice = preferred;
+
+        utterance.onstart = () => {
+          isAudioPlayingRef.current = true;
+        };
+        utterance.onend = () => {
+          onSpeechFinished();
+        };
+        utterance.onerror = (e) => {
+          console.warn("Speech error event:", e);
+          onSpeechFinished();
+        };
+
+        const wordCount = text.split(/\s+/).filter(Boolean).length;
+        const maxDurationMs = Math.max(5000, Math.ceil((wordCount / 2.2) * 1000) + 3500);
+        speechWatchdogRef.current = setTimeout(() => {
+          console.warn("[Speech Watchdog] Auto-releasing speaking lock to keep conversation progressing");
+          onSpeechFinished();
+        }, maxDurationMs);
+
+        speechHeartbeatRef.current = setInterval(() => {
+          if (typeof window !== "undefined" && window.speechSynthesis?.speaking) {
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
+          }
+        }, 10000);
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn("Speech synthesis error:", err);
+        onSpeechFinished();
+      }
+    }, 40);
   };
 
   // ── MICROPHONE & AUTOMATIC SPEECH RECOGNITION ─────────────────────────────

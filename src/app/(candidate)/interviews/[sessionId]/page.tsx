@@ -79,6 +79,9 @@ function InterviewStudioContent() {
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSpeakingRef = useRef(false);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const speechWatchdogRef = useRef<NodeJS.Timeout | null>(null);
+  const speechHeartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load config from sessionStorage or default to Software Engineer
   useEffect(() => {
@@ -195,9 +198,22 @@ function InterviewStudioContent() {
       audioPlayerRef.current.pause();
       audioPlayerRef.current.currentTime = 0;
     }
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (speechWatchdogRef.current) {
+      clearTimeout(speechWatchdogRef.current);
+      speechWatchdogRef.current = null;
     }
+    if (speechHeartbeatRef.current) {
+      clearInterval(speechHeartbeatRef.current);
+      speechHeartbeatRef.current = null;
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      try {
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+          window.speechSynthesis.cancel();
+        }
+      } catch {}
+    }
+    currentUtteranceRef.current = null;
     isSpeakingRef.current = false;
   }, []);
 
@@ -212,7 +228,19 @@ function InterviewStudioContent() {
         .replace(/\[Skipped\]/g, "Question skipped.")
         .trim();
 
+      let hasCompleted = false;
       const onSpeechFinished = () => {
+        if (hasCompleted) return;
+        hasCompleted = true;
+        if (speechWatchdogRef.current) {
+          clearTimeout(speechWatchdogRef.current);
+          speechWatchdogRef.current = null;
+        }
+        if (speechHeartbeatRef.current) {
+          clearInterval(speechHeartbeatRef.current);
+          speechHeartbeatRef.current = null;
+        }
+        currentUtteranceRef.current = null;
         isSpeakingRef.current = false;
         onDone?.();
       };
@@ -222,42 +250,74 @@ function InterviewStudioContent() {
         return;
       }
 
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
+      // Resume synthesis if browser suspended it
+      try {
+        window.speechSynthesis.resume();
+      } catch {}
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.rate = 1.02;
-      utterance.pitch = 1.04;
+      // Short delay (40ms) allows speech cancel IPC to finish cleanly before queuing new utterance
+      setTimeout(() => {
+        try {
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          // Retain utterance in ref to prevent V8 garbage collector from dropping it mid-speech
+          currentUtteranceRef.current = utterance;
+          if (typeof window !== "undefined") {
+            (window as any).__activeUtterance = utterance;
+          }
 
-      const voices = window.speechSynthesis.getVoices();
-      const preferred =
-        voices.find(
-          (v) =>
-            v.lang.startsWith("en") &&
-            (v.name.includes("Google") ||
-              v.name.includes("Natural") ||
-              v.name.includes("Samantha") ||
-              v.name.includes("Zira") ||
-              v.name.includes("Female"))
-        ) || voices.find((v) => v.lang.startsWith("en"));
+          utterance.rate = 1.0;
+          utterance.pitch = 1.03;
 
-      if (preferred) utterance.voice = preferred;
+          const voices = window.speechSynthesis.getVoices();
+          const preferred =
+            voices.find(
+              (v) =>
+                v.lang.startsWith("en") &&
+                (v.name.includes("Google") ||
+                  v.name.includes("Natural") ||
+                  v.name.includes("Samantha") ||
+                  v.name.includes("Zira") ||
+                  v.name.includes("Female"))
+            ) || voices.find((v) => v.lang.startsWith("en"));
 
-      utterance.onstart = () => {
-        isSpeakingRef.current = true;
-        setPhase("speaking");
-      };
+          if (preferred) utterance.voice = preferred;
 
-      utterance.onend = () => {
-        onSpeechFinished();
-      };
+          utterance.onstart = () => {
+            isSpeakingRef.current = true;
+            setPhase("speaking");
+          };
 
-      utterance.onerror = (e) => {
-        console.warn("SpeechSynthesis error:", e);
-        onSpeechFinished();
-      };
+          utterance.onend = () => {
+            onSpeechFinished();
+          };
 
-      window.speechSynthesis.speak(utterance);
+          utterance.onerror = (e) => {
+            console.warn("SpeechSynthesis notice:", e);
+            onSpeechFinished();
+          };
+
+          // Watchdog timer: automatically recovers if browser drops onend or audio stalls
+          const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
+          const maxAllowedMs = Math.max(5000, Math.ceil((wordCount / 2.2) * 1000) + 3500);
+          speechWatchdogRef.current = setTimeout(() => {
+            console.warn("[Speech Watchdog] Auto-progressing interview state after voice completion timeout");
+            onSpeechFinished();
+          }, maxAllowedMs);
+
+          // Heartbeat keeps Chrome speech synthesis active for utterances > 12 seconds
+          speechHeartbeatRef.current = setInterval(() => {
+            if (typeof window !== "undefined" && window.speechSynthesis?.speaking) {
+              window.speechSynthesis.pause();
+              window.speechSynthesis.resume();
+            }
+          }, 10000);
+
+          window.speechSynthesis.speak(utterance);
+        } catch (err) {
+          console.warn("Failed to speak utterance:", err);
+          onSpeechFinished();
+        }
+      }, 40);
     },
     [stopSpeech]
   );

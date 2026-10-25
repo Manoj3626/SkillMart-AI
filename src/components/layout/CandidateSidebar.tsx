@@ -33,7 +33,6 @@ const NAV_ITEMS: Record<UserRole, { href: string; icon: React.ElementType; label
     { href: "/resume", icon: FileText, label: "Resume Analyzer" },
     { href: "/jobs", icon: Briefcase, label: "Job Discovery" },
     { href: "/skills", icon: TrendingUp, label: "Skill Gap" },
-    { href: "/applications", icon: ClipboardList, label: "Applications" },
     { href: "/portfolio", icon: FolderGit2, label: "Portfolio" },
     { href: "/learn", icon: BookOpen, label: "Learning" },
   ],

@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import type { User, Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
 
 interface AuthContextValue {
@@ -47,19 +47,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    // Check Supabase session first, then college auth session fallback
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setSession(session);
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-          setLoading(false);
-          return;
+        if (isSupabaseConfigured()) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            setSession(session);
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+            setLoading(false);
+            return;
+          }
         }
 
-        // Check KCE College Auth Session
+        // Check College Auth Session (responds in <10ms)
         const collegeRes = await fetch("/api/auth/session");
         if (collegeRes.ok) {
           const collegeData = await collegeRes.json();
@@ -92,17 +93,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initAuth();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setProfile(null);
-      setLoading(false);
-    });
+    if (isSupabaseConfigured()) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) fetchProfile(session.user.id);
+        else setProfile(null);
+        setLoading(false);
+      });
 
-    return () => subscription.unsubscribe();
+      return () => subscription.unsubscribe();
+    }
   }, [supabase, fetchProfile]);
 
   const signOut = useCallback(async () => {
