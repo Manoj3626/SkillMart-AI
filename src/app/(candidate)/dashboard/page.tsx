@@ -55,19 +55,13 @@ const quickActions = [
   },
 ];
 
-// Demo data shown to new users — clearly labeled
-const demoRecentInterviews = [
-  { role: "Software Engineer", type: "Technical", score: 72, date: "2 days ago", status: "completed" },
-  { role: "Frontend Developer", type: "Mixed", score: 65, date: "5 days ago", status: "completed" },
-];
-
 export default function DashboardPage() {
   const { profile } = useAuth();
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
-  const isNew = true; // In production: check for real interview/resume data
-
   const [studentProfile, setStudentProfile] = React.useState<any>(profile?.student_profile || null);
   const [currentDateStr, setCurrentDateStr] = React.useState<string>("");
+  const [recentInterviews, setRecentInterviews] = React.useState<any[]>([]);
+  const isNew = recentInterviews.length === 0;
 
   React.useEffect(() => {
     setCurrentDateStr(
@@ -83,6 +77,15 @@ export default function DashboardPage() {
       .then((data) => {
         if (data.authenticated && data.user?.studentProfile) {
           setStudentProfile(data.user.studentProfile);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/interviews/history")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.sessions)) {
+          setRecentInterviews(data.sessions.slice(0, 3));
         }
       })
       .catch(() => {});
@@ -286,52 +289,45 @@ export default function DashboardPage() {
               </Link>
             </CardHeader>
 
-            {demoRecentInterviews.length === 0 ? (
+            {recentInterviews.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-12 h-12 rounded-full bg-[var(--color-surface-100)] flex items-center justify-center mb-3">
                   <Mic size={22} className="text-[var(--color-surface-300)]" />
                 </div>
                 <p className="text-sm font-medium text-[var(--color-surface-600)] mb-1">
-                  No interviews yet
+                  No practice interviews yet
                 </p>
                 <p className="text-xs text-[var(--color-surface-400)] mb-4">
-                  Start practicing to see your history here
+                  Start practicing to track your scores and feedback here
                 </p>
                 <Link href="/interviews/new" className="btn btn-primary btn-sm">
                   Start First Interview
                 </Link>
               </div>
             ) : (
-              <>
-                <div className="mb-2 flex items-center gap-2">
-                  <AlertCircle size={12} className="text-[var(--color-warning-500)]" />
-                  <span className="text-xs text-[var(--color-warning-600)] font-medium">
-                    Demo data — connect Supabase to see real records
-                  </span>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {demoRecentInterviews.map((interview, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-surface-50)] hover:bg-[var(--color-surface-100)] transition-colors cursor-pointer"
-                    >
-                      <ScoreRing score={interview.score} size={52} strokeWidth={5} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-[var(--color-surface-900)]">
-                          {interview.role}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="surface">{interview.type}</Badge>
-                          <span className="text-xs text-[var(--color-surface-400)] flex items-center gap-1">
-                            <Clock size={10} /> {interview.date}
-                          </span>
-                        </div>
+              <div className="flex flex-col gap-3">
+                {recentInterviews.map((interview) => (
+                  <Link
+                    key={interview.id}
+                    href={`/interviews/${interview.id}/feedback`}
+                    className="flex items-center gap-4 p-3 rounded-xl bg-[var(--color-surface-50)] hover:bg-[var(--color-surface-100)] transition-colors cursor-pointer"
+                  >
+                    <ScoreRing score={interview.score} size={52} strokeWidth={5} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-[var(--color-surface-900)]">
+                        {interview.jobRole}
                       </div>
-                      <ChevronRight size={16} className="text-[var(--color-surface-300)]" />
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="surface">{interview.interviewType}</Badge>
+                        <span className="text-xs text-[var(--color-surface-400)] flex items-center gap-1">
+                          <Clock size={10} /> {new Date(interview.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </>
+                    <ChevronRight size={16} className="text-[var(--color-surface-300)]" />
+                  </Link>
+                ))}
+              </div>
             )}
           </Card>
         </div>

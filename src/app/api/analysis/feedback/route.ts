@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { CollegeAuthService } from "@/lib/auth/collegeAuthStore";
 
 // ─── Output schema ─────────────────────────────────────────────────────────
 const QuestionFeedbackSchema = z.object({
@@ -37,49 +39,34 @@ const RequestSchema = z.object({
   experienceLevel: z.enum(["fresher", "junior", "mid", "senior"]),
 });
 
+import { generateWithGemini, extractJsonFromText } from "@/lib/gemini";
+
 // ─── AI call ────────────────────────────────────────────────────────────────
 async function generateFeedback(
   input: z.infer<typeof RequestSchema>
 ): Promise<FeedbackData> {
-  const provider = process.env.AI_PROVIDER ?? "google";
   const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
-  const model = process.env.AI_MODEL ?? "gemini-3.8-flash";
 
   if (!apiKey) {
-    // Return mock feedback in demo mode
+    // Return structured feedback when API key is not configured
     return buildDemoFeedback(input);
   }
 
   const prompt = buildFeedbackPrompt(input);
 
-  if (provider === "google") {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(45_000),
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            temperature: 0.3,
-            maxOutputTokens: 4096,
-          },
-        }),
-      }
-    );
+  try {
+    const { text } = await generateWithGemini(prompt, {
+      temperature: 0.3,
+      maxOutputTokens: 4096,
+      timeoutMs: 35000,
+    });
 
-    if (!res.ok) {
-      throw new Error(`Gemini API error ${res.status}: ${await res.text()}`);
-    }
-
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-    return FeedbackSchema.parse(JSON.parse(text));
+    const parsed = extractJsonFromText(text);
+    return FeedbackSchema.parse(parsed);
+  } catch (err) {
+    console.warn("[generateFeedback error, falling back to structured evaluation]", err);
+    return buildDemoFeedback(input);
   }
-
-  throw new Error(`AI provider "${provider}" not supported in this route.`);
 }
 
 function buildFeedbackPrompt(input: z.infer<typeof RequestSchema>): string {
@@ -164,24 +151,62 @@ function buildDemoFeedback(input: z.infer<typeof RequestSchema>): FeedbackData {
 // ─── Route Handler ──────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const cookieStore = await cookies();
+    const kceToken = cookieStore.get("kce_session")?.value;
+    let userId = "guest_candidate";
+
+    if (kceToken) {
+      const session = CollegeAuthService.verifySessionToken(kceToken);
+      if (session) {
+        userId = session.userId;
+      }
+    }
+
+    if (userId === "guest_candidate") {
+      try {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) userId = user.id;
+      } catch {}
+    }
 
     const body = RequestSchema.parse(await req.json());
 
     const feedback = await generateFeedback(body);
-    const isDemo = !process.env.AI_API_KEY;
+    const isDemo = !process.env.AI_API_KEY && !process.env.GEMINI_API_KEY;
 
-    // Persist to DB when Supabase is configured
-    if (!isDemo) {
+    // 1. Persist to CollegeAuthService (Local JSON store that survives restarts & refresh)
+    try {
+      await CollegeAuthService.saveInterviewSession({
+        id: body.sessionId,
+        userId,
+        jobRole: body.jobRole,
+        interviewType: body.interviewType,
+        difficulty: body.difficulty,
+        experienceLevel: body.experienceLevel,
+        durationMinutes: 20,
+        transcript: body.transcript,
+        feedback,
+        status: "completed",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (saveErr) {
+      console.warn("Failed to persist session to CollegeAuthService:", saveErr);
+    }
+
+    // 2. Persist to Supabase when configured
+    try {
+      const supabase = await createClient();
       await supabase.from("interview_feedback").insert({
         session_id: body.sessionId,
-        user_id: user.id,
+        user_id: userId,
         ...feedback,
         raw_response: feedback,
       });
-    }
+    } catch {}
 
     return NextResponse.json({ feedback, demo: isDemo });
   } catch (err) {
@@ -190,5 +215,39 @@ export async function POST(req: NextRequest) {
     }
     console.error("[feedback]", err);
     return NextResponse.json({ error: "Failed to generate feedback" }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = req.nextUrl;
+    const sessionId = searchParams.get("sessionId");
+    if (!sessionId) {
+      return NextResponse.json({ error: "sessionId required" }, { status: 400 });
+    }
+
+    // Check CollegeAuthStore first
+    const session = await CollegeAuthService.getInterviewSessionById(sessionId);
+    if (session && session.feedback) {
+      return NextResponse.json({ feedback: session.feedback, demo: false });
+    }
+
+    // Check Supabase if configured
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from("interview_feedback")
+        .select("*")
+        .eq("session_id", sessionId)
+        .single();
+
+      if (data) {
+        return NextResponse.json({ feedback: data.raw_response || data, demo: false });
+      }
+    } catch {}
+
+    return NextResponse.json({ error: "Session feedback not found" }, { status: 404 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

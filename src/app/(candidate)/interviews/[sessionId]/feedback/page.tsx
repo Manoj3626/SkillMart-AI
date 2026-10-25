@@ -54,6 +54,20 @@ export default function FeedbackPage() {
           } catch {}
         }
 
+        // Check if persistent feedback exists on the server
+        try {
+          const checkRes = await fetch(`/api/analysis/feedback?sessionId=${sessionId}`);
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (checkData.feedback) {
+              setFeedback(checkData.feedback);
+              setIsDemo(false);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch {}
+
         // Get config and transcript from sessionStorage
         const configRaw = sessionStorage.getItem(`interview-config-${sessionId}`);
         const config = configRaw ? JSON.parse(configRaw) : {};

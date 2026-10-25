@@ -1063,10 +1063,14 @@ function InterviewApp() {
       const isFinal = currentQIdx + 1 >= questions.length;
       const nextQ = !isFinal ? questions[currentQIdx + 1] : null;
 
+      const abortCtrl = new AbortController();
+      const timeoutId = setTimeout(() => abortCtrl.abort(), 16000);
+
       try {
         const res = await fetch("/api/interview/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: abortCtrl.signal,
           body: JSON.stringify({
             messages: updatedMessages,
             currentQuestion: questions[currentQIdx]?.question || "",
@@ -1077,6 +1081,7 @@ function InterviewApp() {
             totalQuestions: questions.length,
           }),
         });
+        clearTimeout(timeoutId);
 
         if (!res.ok) throw new Error("Recruiter agent connection error");
 

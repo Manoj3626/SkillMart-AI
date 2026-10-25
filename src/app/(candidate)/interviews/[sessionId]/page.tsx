@@ -48,7 +48,7 @@ interface InterviewQuestion {
   followUpHints?: string[];
 }
 
-type InterviewPhase = "ready" | "speaking" | "listening" | "processing_answer" | "completed";
+type InterviewPhase = "ready" | "speaking" | "listening" | "processing_answer" | "failed" | "completed";
 
 function InterviewStudioContent() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -65,6 +65,8 @@ function InterviewStudioContent() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lastSubmittedAnswer, setLastSubmittedAnswer] = useState<string>("");
 
   // Fullscreen & Focus Integrity states
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -82,6 +84,7 @@ function InterviewStudioContent() {
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const speechWatchdogRef = useRef<NodeJS.Timeout | null>(null);
   const speechHeartbeatRef = useRef<NodeJS.Timeout | null>(null);
+  const isListeningActiveRef = useRef(false);
 
   // Load config from sessionStorage or default to Software Engineer
   useEffect(() => {
@@ -324,6 +327,7 @@ function InterviewStudioContent() {
 
   // ── Speech-to-Text Microphone Engine ──────────────────────────────────────
   const stopListening = useCallback(() => {
+    isListeningActiveRef.current = false;
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -338,11 +342,7 @@ function InterviewStudioContent() {
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRec) return;
 
-    try {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    } catch {}
+    stopListening();
 
     try {
       const recognition = new SpeechRec();
@@ -351,6 +351,7 @@ function InterviewStudioContent() {
       recognition.lang = "en-US";
 
       recognition.onstart = () => {
+        isListeningActiveRef.current = true;
         setPhase("listening");
       };
 
@@ -369,7 +370,8 @@ function InterviewStudioContent() {
       };
 
       recognition.onend = () => {
-        if (!isSpeakingRef.current && micEnabled && phase === "listening") {
+        // Only restart if active listening is intended and interviewer is not speaking
+        if (isListeningActiveRef.current && !isSpeakingRef.current && micEnabled) {
           try {
             recognition.start();
           } catch {}
@@ -378,11 +380,12 @@ function InterviewStudioContent() {
 
       recognition.start();
       recognitionRef.current = recognition;
+      isListeningActiveRef.current = true;
       setPhase("listening");
     } catch (err) {
       console.warn("Could not start speech recognition:", err);
     }
-  }, [micEnabled, phase]);
+  }, [micEnabled, stopListening]);
 
   // ── Ask Initial Question (Stage 3 Zero-Lag Prompting) ─────────────────────
   const askQuestion = useCallback(
@@ -531,13 +534,13 @@ function InterviewStudioContent() {
   );
 
   // ── Submit Candidate Answer & State Machine Progression ───────────────────
-  const handleAnswerSubmit = async () => {
-    if (!currentAnswer.trim() || phase === "processing_answer") return;
+  const handleAnswerSubmit = async (overrideAnswer?: string) => {
+    const answeredText = (overrideAnswer !== undefined ? overrideAnswer : currentAnswer).trim();
+    if (!answeredText || phase === "processing_answer") return;
 
     stopListening();
     setPhase("processing_answer");
-
-    const answeredText = currentAnswer.trim();
+    setSubmitError(null);
     setCurrentAnswer("");
 
     // Add candidate message to transcript
@@ -555,10 +558,14 @@ function InterviewStudioContent() {
     const isFinal = nextIndex >= questions.length;
     const nextQ = questions[nextIndex];
 
+    const abortCtrl = new AbortController();
+    const timeoutId = setTimeout(() => abortCtrl.abort(), 16000);
+
     try {
       const res = await fetch("/api/interview/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: abortCtrl.signal,
         body: JSON.stringify({
           messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
           currentQuestion: questions[currentQuestionIndex]?.question || "",
@@ -568,6 +575,7 @@ function InterviewStudioContent() {
           totalQuestions: questions.length,
         }),
       });
+      clearTimeout(timeoutId);
 
       let aiReply = "";
       if (res.ok) {
@@ -581,7 +589,7 @@ function InterviewStudioContent() {
           : `Thank you for sharing that. Let's move on to the next question: ${nextQ?.question}`;
       }
 
-      // Update Live Question Card to next question immediately
+      // Update Live Question Card to next question
       if (!isFinal) {
         setCurrentQuestionIndex(nextIndex);
       }
@@ -603,22 +611,43 @@ function InterviewStudioContent() {
           startListening();
         }
       });
-    } catch (err) {
+    } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error("Failed to evaluate answer:", err);
-      if (isFinal) {
-        handleEnd(updatedMessages);
-      } else {
-        setCurrentQuestionIndex(nextIndex);
-        askQuestion(nextIndex, questions);
-      }
+      setLastSubmittedAnswer(answeredText);
+      const isTimeout = err.name === "AbortError";
+      setSubmitError(
+        isTimeout
+          ? "Interviewer response timed out. Click Retry Answer to resubmit, or Skip to continue."
+          : "Network connection issue reaching the interviewer agent. Click Retry Answer to resubmit, or Skip to continue."
+      );
+      setPhase("failed");
+    }
+  };
+
+  const handleRetryFailedAnswer = () => {
+    if (lastSubmittedAnswer) {
+      handleAnswerSubmit(lastSubmittedAnswer);
+    } else {
+      setPhase("listening");
+      startListening();
+    }
+  };
+
+  const handleForceNextQuestion = () => {
+    setSubmitError(null);
+    const nextIndex = currentQuestionIndex + 1;
+    if (nextIndex >= questions.length) {
+      handleEnd();
+    } else {
+      setCurrentQuestionIndex(nextIndex);
+      setPhase("listening");
+      askQuestion(nextIndex, questions);
     }
   };
 
   const handleSkipQuestion = () => {
-    setCurrentAnswer("[Skipped this question]");
-    setTimeout(() => {
-      handleAnswerSubmit();
-    }, 100);
+    handleAnswerSubmit("[Skipped this question]");
   };
 
   const handleReplayQuestion = () => {
@@ -866,6 +895,29 @@ function InterviewStudioContent() {
 
           {/* Answer Input & Turn-Taking Interaction Bar */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-2 shrink-0">
+            {submitError && (
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-950/60 border border-red-500/40 text-xs text-red-200 animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={15} className="text-red-400 shrink-0" />
+                  <span>{submitError}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRetryFailedAnswer}
+                    className="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw size={11} /> Retry Answer
+                  </button>
+                  <button
+                    onClick={handleForceNextQuestion}
+                    className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white/80 rounded text-[11px] transition-colors cursor-pointer"
+                  >
+                    Skip & Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 text-white/70 font-medium">
                 {isListening ? (
@@ -880,6 +932,10 @@ function InterviewStudioContent() {
                   <span className="inline-flex items-center gap-1 text-teal-300">
                     <RefreshCw size={12} className="animate-spin" /> Evaluating answer & generating tailored response...
                   </span>
+                ) : phase === "failed" ? (
+                  <span className="text-red-300">
+                    ⚠️ Evaluation paused. Please retry or continue.
+                  </span>
                 ) : (
                   <span>Answer box (Voice transcript or type below):</span>
                 )}
@@ -888,7 +944,7 @@ function InterviewStudioContent() {
               <button
                 onClick={handleSkipQuestion}
                 disabled={isEvaluating}
-                className="text-white/40 hover:text-white/70 text-[11px] flex items-center gap-1 transition-colors"
+                className="text-white/40 hover:text-white/70 text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <SkipForward size={12} /> Skip question
               </button>
@@ -928,9 +984,9 @@ function InterviewStudioContent() {
               />
 
               <button
-                onClick={handleAnswerSubmit}
+                onClick={() => handleAnswerSubmit()}
                 disabled={!currentAnswer.trim() || isEvaluating}
-                className="px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/10 disabled:text-white/30 text-white rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm shrink-0"
+                className="px-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/10 disabled:text-white/30 text-white rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm shrink-0 cursor-pointer"
               >
                 {isEvaluating ? (
                   <RefreshCw size={14} className="animate-spin" />

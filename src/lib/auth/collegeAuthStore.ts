@@ -51,6 +51,21 @@ export interface SessionData {
 const DATA_DIR = path.join(process.cwd(), "data");
 const STORE_FILE = path.join(DATA_DIR, "college_auth_store.json");
 
+export interface StoredInterviewSession {
+  id: string;
+  userId: string;
+  jobRole: string;
+  interviewType: string;
+  difficulty: string;
+  experienceLevel: string;
+  durationMinutes: number;
+  transcript: string;
+  feedback?: any;
+  status: "completed" | "active";
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface StoreSchema {
   users: Record<string, StoredUser>; // keyed by email (lowercase)
   usersById: Record<string, string>; // userId -> email
@@ -58,6 +73,7 @@ interface StoreSchema {
   collegeIds: Record<string, string>; // normalized collegeId -> email
   otpChallenges: Record<string, OTPChallenge>; // challengeId -> OTPChallenge
   auditLogs: AuditLog[];
+  interviewSessions?: Record<string, StoredInterviewSession>;
 }
 
 let storeMemory: StoreSchema | null = null;
@@ -1017,5 +1033,30 @@ export class CollegeAuthService {
     } catch {
       return null;
     }
+  }
+
+  // ── Persistent Interview Sessions & Results ────────────────────────────────
+  static async saveInterviewSession(session: StoredInterviewSession): Promise<StoredInterviewSession> {
+    const store = getStore();
+    if (!store.interviewSessions) {
+      store.interviewSessions = {};
+    }
+    store.interviewSessions[session.id] = session;
+    saveStore(store);
+    return session;
+  }
+
+  static async getInterviewSessionsByUser(userId: string): Promise<StoredInterviewSession[]> {
+    const store = getStore();
+    if (!store.interviewSessions) return [];
+    return Object.values(store.interviewSessions)
+      .filter((s) => s.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  static async getInterviewSessionById(sessionId: string): Promise<StoredInterviewSession | null> {
+    const store = getStore();
+    if (!store.interviewSessions) return null;
+    return store.interviewSessions[sessionId] || null;
   }
 }
