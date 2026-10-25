@@ -9,7 +9,7 @@
       "fullName": "Dr. K. Senthil Kumar (Super Admin)",
       "accountStatus": "active",
       "sessionVersion": 1,
-      "lastActivity": "2026-10-25T16:33:44.347Z",
+      "lastActivity": "2026-10-25T16:58:33.641Z",
       "failedLoginAttempts": 0,
       "mfaSecret": "KCE_ADMIN_MFA_SECRET",
       "adminProfile": {
@@ -7453,6 +7453,366 @@
       "createdAt": "2026-10-25T16:33:47.878Z",
       "updatedAt": "2026-10-25T16:33:48.028Z",
       "lockoutUntil": null
+    },
+    "test.student.1792947507698@kce.ac.in": {
+      "id": "usr_std_1792947507950_a05e245d",
+      "email": "test.student.1792947507698@kce.ac.in",
+      "passwordHash": "b9e0bc6de9477f8611c002faf49c33fbc567fa2b0f74a6901b654ebcce38801141bfe114644a6d1bcbb2ecb920ed9291ddb7a1f432e76083312d8584fde47ed9",
+      "salt": "7d68c5a0ddfd608770b56cb4e6d1389a",
+      "role": "candidate",
+      "fullName": "Ananya Ramesh",
+      "accountStatus": "pending_email_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:27.951Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947507951",
+        "userId": "usr_std_1792947507950_a05e245d",
+        "fullName": "Ananya Ramesh",
+        "collegeEmail": "test.student.1792947507698@kce.ac.in",
+        "rollNumber": "22CS9136",
+        "collegeId": "KCE57403",
+        "department": "CSE",
+        "degree": "B.E. (Bachelor of Engineering)",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": null,
+        "emailVerified": false,
+        "collegeVerified": false,
+        "status": "pending_email_verification",
+        "createdAt": "2026-10-25T16:58:27.951Z",
+        "updatedAt": "2026-10-25T16:58:27.951Z"
+      },
+      "createdAt": "2026-10-25T16:58:27.951Z",
+      "updatedAt": "2026-10-25T16:58:27.951Z"
+    },
+    "verify.test.1792947510362@kce.ac.in": {
+      "id": "usr_std_1792947510830_682bcfb1",
+      "email": "verify.test.1792947510362@kce.ac.in",
+      "passwordHash": "baa0595038dd644fdc82360da6e44bccabbe253711e545471f5dece83534e78edddbc7bdb85691fb7232411f8b7b1338b8b68933c03acc41a6047701e6c9f1aa",
+      "salt": "ab84272531e9f32a313bbbcbe646c7b6",
+      "role": "candidate",
+      "fullName": "Verify Test Student",
+      "accountStatus": "pending_email_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:30.831Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947510831",
+        "userId": "usr_std_1792947510830_682bcfb1",
+        "fullName": "Verify Test Student",
+        "collegeEmail": "verify.test.1792947510362@kce.ac.in",
+        "rollNumber": "22CS5969",
+        "collegeId": "KCE65819",
+        "department": "CSE",
+        "degree": "B.E. (Bachelor of Engineering)",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": null,
+        "emailVerified": false,
+        "collegeVerified": false,
+        "status": "pending_email_verification",
+        "createdAt": "2026-10-25T16:58:30.831Z",
+        "updatedAt": "2026-10-25T16:58:30.831Z"
+      },
+      "createdAt": "2026-10-25T16:58:30.831Z",
+      "updatedAt": "2026-10-25T16:58:30.831Z"
+    },
+    "studenta_1792947516456@kce.ac.in": {
+      "id": "usr_std_1792947516537_4d6ceb4e",
+      "email": "studenta_1792947516456@kce.ac.in",
+      "passwordHash": "c0794a2d71c5da3a7b0b2b4ad2db178f2969c786afa51f276b6b65a9e4defb687381c0dccde230e0d08507707b7b21378497245bd505083f69ba8d34c98b24fa",
+      "salt": "da7dbc7dac277d83f711b08db5167c38",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_email_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:36.538Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947516537",
+        "userId": "usr_std_1792947516537_4d6ceb4e",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "studenta_1792947516456@kce.ac.in",
+        "rollNumber": "22CS9201",
+        "collegeId": "KCE62940",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": false,
+        "collegeVerified": false,
+        "status": "pending_email_verification",
+        "createdAt": "2026-10-25T16:58:36.537Z",
+        "updatedAt": "2026-10-25T16:58:36.538Z"
+      },
+      "createdAt": "2026-10-25T16:58:36.538Z",
+      "updatedAt": "2026-10-25T16:58:36.538Z"
+    },
+    "otp_test_1792947516562@kce.ac.in": {
+      "id": "usr_std_1792947516649_d28a161e",
+      "email": "otp_test_1792947516562@kce.ac.in",
+      "passwordHash": "c2bbf8e0ecb26a31c9bc644c5e670a08eae2a3b5828002e70bfc72ea1934ff678772e6493f80d05ae9e539462d2d9d8a018708af21ab9648ad897fabbb07df42",
+      "salt": "1022ac53442512a9e8e09ba7fd674a99",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_college_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:36.649Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947516649",
+        "userId": "usr_std_1792947516649_d28a161e",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "otp_test_1792947516562@kce.ac.in",
+        "rollNumber": "ROLL_1792947516562",
+        "collegeId": "ID_1792947516562",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": false,
+        "status": "pending_college_verification",
+        "createdAt": "2026-10-25T16:58:36.649Z",
+        "updatedAt": "2026-10-25T16:58:36.673Z"
+      },
+      "createdAt": "2026-10-25T16:58:36.649Z",
+      "updatedAt": "2026-10-25T16:58:36.673Z"
+    },
+    "pending_1792947516684@kce.ac.in": {
+      "id": "usr_std_1792947516776_2e54b45c",
+      "email": "pending_1792947516684@kce.ac.in",
+      "passwordHash": "1cf86f970a5c43eb41fb1a5e0a7ad23b3fd34788d4ebb6b20b9e70ae71e66a98664adbbfcd791c4f61391db8b5c1a12f84405b65d866005e83d2d7dc0d1ba827",
+      "salt": "19bc24369692cb6c631b1d8cd1cc121b",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_college_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:36.777Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947516777",
+        "userId": "usr_std_1792947516776_2e54b45c",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "pending_1792947516684@kce.ac.in",
+        "rollNumber": "ROLL_1792947516684",
+        "collegeId": "ID_1792947516684",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": false,
+        "status": "pending_college_verification",
+        "createdAt": "2026-10-25T16:58:36.777Z",
+        "updatedAt": "2026-10-25T16:58:36.790Z"
+      },
+      "createdAt": "2026-10-25T16:58:36.777Z",
+      "updatedAt": "2026-10-25T16:58:36.790Z"
+    },
+    "approve_test_1792947516801@kce.ac.in": {
+      "id": "usr_std_1792947516920_9175897b",
+      "email": "approve_test_1792947516801@kce.ac.in",
+      "passwordHash": "e007f25bd09cb50b9bb3663b25bc53ce92ce3c48454fb5aa22b2b64ea282eea81785c3a1e0195a491e94fb675c39039abeee1c7405a9b10245db2bed3ab9d2a5",
+      "salt": "10d785233ee750aa2378d71860a43098",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "active",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:36.920Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947516920",
+        "userId": "usr_std_1792947516920_9175897b",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "approve_test_1792947516801@kce.ac.in",
+        "rollNumber": "ROLL_1792947516801",
+        "collegeId": "ID_1792947516801",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": true,
+        "status": "active",
+        "createdAt": "2026-10-25T16:58:36.920Z",
+        "updatedAt": "2026-10-25T16:58:36.952Z",
+        "rejectionReason": null,
+        "approvedBy": "admin_1",
+        "approvedAt": "2026-10-25T16:58:36.952Z"
+      },
+      "createdAt": "2026-10-25T16:58:36.920Z",
+      "updatedAt": "2026-10-25T16:58:36.952Z"
+    },
+    "reject_test_1792947516963@kce.ac.in": {
+      "id": "usr_std_1792947517067_d2e14532",
+      "email": "reject_test_1792947516963@kce.ac.in",
+      "passwordHash": "876c6afbf2ff20ffe485805a66f9b0e46abccdbe7c6597fea80a3046fc3dbfdc35791f39a1feffe29942dcb7bc17ce02116c02d4acc7b8ec3779d8c5e7348600",
+      "salt": "423a329bdc66482c9234ce4169662e07",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_college_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:37.067Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947517067",
+        "userId": "usr_std_1792947517067_d2e14532",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "reject_test_1792947516963@kce.ac.in",
+        "rollNumber": "22AD7089",
+        "collegeId": "ID_1792947516963",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": false,
+        "status": "pending_college_verification",
+        "createdAt": "2026-10-25T16:58:37.067Z",
+        "updatedAt": "2026-10-25T16:58:37.116Z",
+        "rejectionReason": null
+      },
+      "createdAt": "2026-10-25T16:58:37.067Z",
+      "updatedAt": "2026-10-25T16:58:37.116Z"
+    },
+    "suspend_test_1792947517124@kce.ac.in": {
+      "id": "usr_std_1792947517232_33cd5be2",
+      "email": "suspend_test_1792947517124@kce.ac.in",
+      "passwordHash": "5e1fd9ac1379b1783c756a4c61a551f5a9bb4e5edc7be3f5310e33acca71957f0f486385186287d894d1bd5914a34a8adbade6b117ef49f0ec615c9e1cec8757",
+      "salt": "aaa723c8291c40e6ce0b53ce1f55bb76",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "suspended",
+      "sessionVersion": 2,
+      "lastActivity": "2026-10-25T16:58:37.232Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947517232",
+        "userId": "usr_std_1792947517232_33cd5be2",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "suspend_test_1792947517124@kce.ac.in",
+        "rollNumber": "ROLL_1792947517124",
+        "collegeId": "ID_1792947517124",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": true,
+        "status": "suspended",
+        "createdAt": "2026-10-25T16:58:37.232Z",
+        "updatedAt": "2026-10-25T16:58:37.278Z",
+        "rejectionReason": null,
+        "approvedBy": "admin_1",
+        "approvedAt": "2026-10-25T16:58:37.254Z"
+      },
+      "createdAt": "2026-10-25T16:58:37.232Z",
+      "updatedAt": "2026-10-25T16:58:37.278Z"
+    },
+    "role_test_1792947517297@kce.ac.in": {
+      "id": "usr_std_1792947517411_c956688e",
+      "email": "role_test_1792947517297@kce.ac.in",
+      "passwordHash": "aed83adce08d65bdb01e6c83fbe32ac37eec13ca6bacee83af121099f419e9ed98bca2efb4ad1f9712aa2b0f5d478b3c193e44d6123ec7b891e01e3ccea01b5b",
+      "salt": "a15a176a995486d0d3c0546d3594ba42",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_email_verification",
+      "sessionVersion": 1,
+      "lastActivity": "2026-10-25T16:58:37.411Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947517411",
+        "userId": "usr_std_1792947517411_c956688e",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "role_test_1792947517297@kce.ac.in",
+        "rollNumber": "ROLL_1792947517297",
+        "collegeId": "ID_1792947517297",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": false,
+        "collegeVerified": false,
+        "status": "pending_email_verification",
+        "createdAt": "2026-10-25T16:58:37.411Z",
+        "updatedAt": "2026-10-25T16:58:37.411Z"
+      },
+      "createdAt": "2026-10-25T16:58:37.411Z",
+      "updatedAt": "2026-10-25T16:58:37.411Z"
+    },
+    "signout_all_1792947517434@kce.ac.in": {
+      "id": "usr_std_1792947517576_530e0a80",
+      "email": "signout_all_1792947517434@kce.ac.in",
+      "passwordHash": "c00f94ef8de9bcbc9f47d97d1a9497cf1d628372996c8b9da8430d66e1a360540081c60e70f0c8444793e9581c26b806a1a34c2afbf7d172a53ed81bfabe6ca9",
+      "salt": "cc9069b191dfab086404c62f4bf3c69f",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_college_verification",
+      "sessionVersion": 2,
+      "lastActivity": "2026-10-25T16:58:37.576Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947517576",
+        "userId": "usr_std_1792947517576_530e0a80",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "signout_all_1792947517434@kce.ac.in",
+        "rollNumber": "ROLL_1792947517434",
+        "collegeId": "ID_1792947517434",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": false,
+        "status": "pending_college_verification",
+        "createdAt": "2026-10-25T16:58:37.576Z",
+        "updatedAt": "2026-10-25T16:58:37.590Z"
+      },
+      "createdAt": "2026-10-25T16:58:37.576Z",
+      "updatedAt": "2026-10-25T16:58:37.615Z"
+    },
+    "reset_test_1792947517635@kce.ac.in": {
+      "id": "usr_std_1792947517776_d8900564",
+      "email": "reset_test_1792947517635@kce.ac.in",
+      "passwordHash": "24c6b5cb9bca04af1bcc22dd7319444b2aab3460a38211bec5a5f19a2c046c8e3bf80e33fde55bc237ac47e58af18604284a94a27c63c06bf302b99b8276a05a",
+      "salt": "9a5e6a31b276b7d7e28713ef2c57a2b4",
+      "role": "candidate",
+      "fullName": "Karthik Subramanian",
+      "accountStatus": "pending_college_verification",
+      "sessionVersion": 2,
+      "lastActivity": "2026-10-25T16:58:38.079Z",
+      "failedLoginAttempts": 0,
+      "studentProfile": {
+        "id": "prof_1792947517776",
+        "userId": "usr_std_1792947517776_d8900564",
+        "fullName": "Karthik Subramanian",
+        "collegeEmail": "reset_test_1792947517635@kce.ac.in",
+        "rollNumber": "ROLL_1792947517635",
+        "collegeId": "ID_1792947517635",
+        "department": "AIDS",
+        "degree": "B.Tech",
+        "academicYear": "3rd Year",
+        "graduationYear": 2026,
+        "phone": "9876543210",
+        "emailVerified": true,
+        "collegeVerified": false,
+        "status": "pending_college_verification",
+        "createdAt": "2026-10-25T16:58:37.776Z",
+        "updatedAt": "2026-10-25T16:58:37.793Z"
+      },
+      "createdAt": "2026-10-25T16:58:37.776Z",
+      "updatedAt": "2026-10-25T16:58:37.946Z",
+      "lockoutUntil": null
     }
   },
   "usersById": {
@@ -7683,7 +8043,18 @@
     "usr_std_1792946027555_ca36c924": "suspend_test_1792946027454@kce.ac.in",
     "usr_std_1792946027666_439837fe": "role_test_1792946027595@kce.ac.in",
     "usr_std_1792946027743_5638d32e": "signout_all_1792946027677@kce.ac.in",
-    "usr_std_1792946027878_753f1fa3": "reset_test_1792946027786@kce.ac.in"
+    "usr_std_1792946027878_753f1fa3": "reset_test_1792946027786@kce.ac.in",
+    "usr_std_1792947507950_a05e245d": "test.student.1792947507698@kce.ac.in",
+    "usr_std_1792947510830_682bcfb1": "verify.test.1792947510362@kce.ac.in",
+    "usr_std_1792947516537_4d6ceb4e": "studenta_1792947516456@kce.ac.in",
+    "usr_std_1792947516649_d28a161e": "otp_test_1792947516562@kce.ac.in",
+    "usr_std_1792947516776_2e54b45c": "pending_1792947516684@kce.ac.in",
+    "usr_std_1792947516920_9175897b": "approve_test_1792947516801@kce.ac.in",
+    "usr_std_1792947517067_d2e14532": "reject_test_1792947516963@kce.ac.in",
+    "usr_std_1792947517232_33cd5be2": "suspend_test_1792947517124@kce.ac.in",
+    "usr_std_1792947517411_c956688e": "role_test_1792947517297@kce.ac.in",
+    "usr_std_1792947517576_530e0a80": "signout_all_1792947517434@kce.ac.in",
+    "usr_std_1792947517776_d8900564": "reset_test_1792947517635@kce.ac.in"
   },
   "rollNumbers": {
     "22CS2131": "studenta_1792859913423@kce.ac.in",
@@ -7910,7 +8281,18 @@
     "ROLL_1792946027454": "suspend_test_1792946027454@kce.ac.in",
     "ROLL_1792946027595": "role_test_1792946027595@kce.ac.in",
     "ROLL_1792946027677": "signout_all_1792946027677@kce.ac.in",
-    "ROLL_1792946027786": "reset_test_1792946027786@kce.ac.in"
+    "ROLL_1792946027786": "reset_test_1792946027786@kce.ac.in",
+    "22CS9136": "test.student.1792947507698@kce.ac.in",
+    "22CS5969": "verify.test.1792947510362@kce.ac.in",
+    "22CS9201": "studenta_1792947516456@kce.ac.in",
+    "ROLL_1792947516562": "otp_test_1792947516562@kce.ac.in",
+    "ROLL_1792947516684": "pending_1792947516684@kce.ac.in",
+    "ROLL_1792947516801": "approve_test_1792947516801@kce.ac.in",
+    "22AD7089": "reject_test_1792947516963@kce.ac.in",
+    "ROLL_1792947517124": "suspend_test_1792947517124@kce.ac.in",
+    "ROLL_1792947517297": "role_test_1792947517297@kce.ac.in",
+    "ROLL_1792947517434": "signout_all_1792947517434@kce.ac.in",
+    "ROLL_1792947517635": "reset_test_1792947517635@kce.ac.in"
   },
   "collegeIds": {
     "KCE23723": "studenta_1792859913423@kce.ac.in",
@@ -8137,7 +8519,18 @@
     "ID_1792946027454": "suspend_test_1792946027454@kce.ac.in",
     "ID_1792946027595": "role_test_1792946027595@kce.ac.in",
     "ID_1792946027677": "signout_all_1792946027677@kce.ac.in",
-    "ID_1792946027786": "reset_test_1792946027786@kce.ac.in"
+    "ID_1792946027786": "reset_test_1792946027786@kce.ac.in",
+    "KCE57403": "test.student.1792947507698@kce.ac.in",
+    "KCE65819": "verify.test.1792947510362@kce.ac.in",
+    "KCE62940": "studenta_1792947516456@kce.ac.in",
+    "ID_1792947516562": "otp_test_1792947516562@kce.ac.in",
+    "ID_1792947516684": "pending_1792947516684@kce.ac.in",
+    "ID_1792947516801": "approve_test_1792947516801@kce.ac.in",
+    "ID_1792947516963": "reject_test_1792947516963@kce.ac.in",
+    "ID_1792947517124": "suspend_test_1792947517124@kce.ac.in",
+    "ID_1792947517297": "role_test_1792947517297@kce.ac.in",
+    "ID_1792947517434": "signout_all_1792947517434@kce.ac.in",
+    "ID_1792947517635": "reset_test_1792947517635@kce.ac.in"
   },
   "otpChallenges": {
     "otp_1792859913575_3a6d6022": {
@@ -11220,7 +11613,7 @@
       "attemptCount": 0,
       "maxAttempts": 5,
       "resendCooldownUntil": "2026-10-25T16:34:14.358Z",
-      "used": false,
+      "used": true,
       "createdAt": "2026-10-25T16:33:44.358Z"
     },
     "otp_1792946026989_d91ec41d": {
@@ -11342,9 +11735,518 @@
       "resendCooldownUntil": "2026-10-25T16:33:47.907Z",
       "used": true,
       "createdAt": "2026-10-25T16:33:47.907Z"
+    },
+    "otp_1792947507951_63321495": {
+      "id": "otp_1792947507951_63321495",
+      "identifier": "test.student.1792947507698@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "f51c2dca93d4fcf0a288010d27276a2141f9fba1de18f2535b59deb63bef403c",
+      "expiresAt": "2026-10-25T17:03:27.952Z",
+      "attemptCount": 0,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:58:57.952Z",
+      "used": false,
+      "createdAt": "2026-10-25T16:58:27.952Z"
+    },
+    "otp_1792947510831_b5ddb791": {
+      "id": "otp_1792947510831_b5ddb791",
+      "identifier": "verify.test.1792947510362@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "1ec0c6fe1010b7274c70ab014df94959c3ccf8626e5c4f502421ea0c882fd628",
+      "expiresAt": "2026-10-25T17:03:30.832Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:00.832Z",
+      "used": false,
+      "createdAt": "2026-10-25T16:58:30.832Z"
+    },
+    "otp_1792947513667_be1adebb": {
+      "id": "otp_1792947513667_be1adebb",
+      "identifier": "superadmin@kce.ac.in",
+      "purpose": "admin_mfa",
+      "hashedCode": "db8d38f1a789b03309bde698bdc8612dc1fbab595a94a77126e3f7b46f5b44be",
+      "expiresAt": "2026-10-25T17:03:33.667Z",
+      "attemptCount": 0,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:03.667Z",
+      "used": false,
+      "createdAt": "2026-10-25T16:58:33.668Z"
+    },
+    "otp_1792947516538_09285dd2": {
+      "id": "otp_1792947516538_09285dd2",
+      "identifier": "studenta_1792947516456@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "7bdbd502c592aeaeb8533c9936255b8a581cbdb8458b91d520e2f79249f8ae20",
+      "expiresAt": "2026-10-25T17:03:36.539Z",
+      "attemptCount": 0,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:06.539Z",
+      "used": false,
+      "createdAt": "2026-10-25T16:58:36.539Z"
+    },
+    "otp_1792947516649_cda584f4": {
+      "id": "otp_1792947516649_cda584f4",
+      "identifier": "otp_test_1792947516562@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "8a968da56b134f3c0a3607a7aeb6d70f83b077acb4c808f1f3bf758c7a3e97f9",
+      "expiresAt": "2026-10-25T17:03:36.649Z",
+      "attemptCount": 2,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:06.649Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:36.649Z"
+    },
+    "otp_1792947516777_fb7ff78c": {
+      "id": "otp_1792947516777_fb7ff78c",
+      "identifier": "pending_1792947516684@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "8b1760034b012207ec1428119bde23e0b51c341d30b3834e3accd665d12304f4",
+      "expiresAt": "2026-10-25T17:03:36.777Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:06.777Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:36.777Z"
+    },
+    "otp_1792947516920_b0ed6683": {
+      "id": "otp_1792947516920_b0ed6683",
+      "identifier": "approve_test_1792947516801@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "a7d71f440bc6beee52187c7f4262bc0692905bf571ef95f8877cf67a4aa0a97d",
+      "expiresAt": "2026-10-25T17:03:36.920Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:06.920Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:36.920Z"
+    },
+    "otp_1792947517067_25414d5e": {
+      "id": "otp_1792947517067_25414d5e",
+      "identifier": "reject_test_1792947516963@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "ac12bd6dc06b699215a1ea482e2c334a6d91937ef0a80595ffe495ea4b4091b6",
+      "expiresAt": "2026-10-25T17:03:37.067Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:07.067Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:37.068Z"
+    },
+    "otp_1792947517232_9d71d844": {
+      "id": "otp_1792947517232_9d71d844",
+      "identifier": "suspend_test_1792947517124@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "1cef48b0c748a4cf3a7f88fff7e402dc730f2123aa908549fe665e11c22e827f",
+      "expiresAt": "2026-10-25T17:03:37.232Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:07.232Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:37.232Z"
+    },
+    "otp_1792947517411_5b669930": {
+      "id": "otp_1792947517411_5b669930",
+      "identifier": "role_test_1792947517297@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "1b448874e0340ff1adf5880cd081f13b7b7a88e663fbdf84f188a34d5522af32",
+      "expiresAt": "2026-10-25T17:03:37.411Z",
+      "attemptCount": 0,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:07.411Z",
+      "used": false,
+      "createdAt": "2026-10-25T16:58:37.411Z"
+    },
+    "otp_1792947517576_3e893ae6": {
+      "id": "otp_1792947517576_3e893ae6",
+      "identifier": "signout_all_1792947517434@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "686c17372a64df4849ea7ba38e957fd3b82bbddd8dd082fb31e6d7293d1a991f",
+      "expiresAt": "2026-10-25T17:03:37.576Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:07.576Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:37.577Z"
+    },
+    "otp_1792947517776_c156c871": {
+      "id": "otp_1792947517776_c156c871",
+      "identifier": "reset_test_1792947517635@kce.ac.in",
+      "purpose": "email_verification",
+      "hashedCode": "9b245d7e6c7bd3870d6975ae2facaee742d5a583b94ce1fa06c28f0b28c9fd61",
+      "expiresAt": "2026-10-25T17:03:37.776Z",
+      "attemptCount": 1,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:59:07.776Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:37.776Z"
+    },
+    "reset_1792947517810_c27732de": {
+      "id": "reset_1792947517810_c27732de",
+      "identifier": "reset_test_1792947517635@kce.ac.in",
+      "purpose": "password_reset",
+      "hashedCode": "f742ca21ee2f9e58e1121e2e0d4a249c2f68916c4224537364d0273451d98bca",
+      "expiresAt": "2026-10-25T17:13:37.810Z",
+      "attemptCount": 0,
+      "maxAttempts": 5,
+      "resendCooldownUntil": "2026-10-25T16:58:37.810Z",
+      "used": true,
+      "createdAt": "2026-10-25T16:58:37.810Z"
     }
   },
   "auditLogs": [
+    {
+      "id": "aud_1792947518079",
+      "actorId": "usr_std_1792947517776_d8900564",
+      "actorRole": "candidate",
+      "action": "USER_SIGNED_IN",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517776_d8900564",
+      "details": {
+        "email": "reset_test_1792947517635@kce.ac.in",
+        "requiresMFA": false
+      },
+      "createdAt": "2026-10-25T16:58:38.079Z"
+    },
+    {
+      "id": "aud_1792947517946",
+      "actorId": "usr_std_1792947517776_d8900564",
+      "actorRole": "candidate",
+      "action": "PASSWORD_RESET_COMPLETED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517776_d8900564",
+      "details": {
+        "email": "reset_test_1792947517635@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.946Z"
+    },
+    {
+      "id": "aud_1792947517810",
+      "actorId": "usr_std_1792947517776_d8900564",
+      "actorRole": "candidate",
+      "action": "PASSWORD_RESET_REQUESTED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517776_d8900564",
+      "details": {
+        "email": "reset_test_1792947517635@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.810Z"
+    },
+    {
+      "id": "aud_1792947517793",
+      "actorId": "usr_std_1792947517776_d8900564",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517776_d8900564",
+      "details": {
+        "email": "reset_test_1792947517635@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.793Z"
+    },
+    {
+      "id": "aud_1792947517776",
+      "actorId": "usr_std_1792947517776_d8900564",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517776_d8900564",
+      "details": {
+        "collegeEmail": "reset_test_1792947517635@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:37.776Z"
+    },
+    {
+      "id": "aud_1792947517590",
+      "actorId": "usr_std_1792947517576_530e0a80",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517576_530e0a80",
+      "details": {
+        "email": "signout_all_1792947517434@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.590Z"
+    },
+    {
+      "id": "aud_1792947517577",
+      "actorId": "usr_std_1792947517576_530e0a80",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517576_530e0a80",
+      "details": {
+        "collegeEmail": "signout_all_1792947517434@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:37.577Z"
+    },
+    {
+      "id": "aud_1792947517411",
+      "actorId": "usr_std_1792947517411_c956688e",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517411_c956688e",
+      "details": {
+        "collegeEmail": "role_test_1792947517297@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:37.411Z"
+    },
+    {
+      "id": "aud_1792947517278",
+      "actorId": "admin_1",
+      "actorRole": "admin",
+      "action": "ACCOUNT_SUSPENDED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517232_33cd5be2",
+      "details": {
+        "email": "suspend_test_1792947517124@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.278Z"
+    },
+    {
+      "id": "aud_1792947517254",
+      "actorId": "admin_1",
+      "actorRole": "college_admin",
+      "action": "STUDENT_APPROVED_AND_ACTIVATED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517232_33cd5be2",
+      "details": {
+        "studentEmail": "suspend_test_1792947517124@kce.ac.in",
+        "rollNumber": "ROLL_1792947517124",
+        "department": "AIDS"
+      },
+      "createdAt": "2026-10-25T16:58:37.254Z"
+    },
+    {
+      "id": "aud_1792947517243",
+      "actorId": "usr_std_1792947517232_33cd5be2",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517232_33cd5be2",
+      "details": {
+        "email": "suspend_test_1792947517124@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.243Z"
+    },
+    {
+      "id": "aud_1792947517232",
+      "actorId": "usr_std_1792947517232_33cd5be2",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517232_33cd5be2",
+      "details": {
+        "collegeEmail": "suspend_test_1792947517124@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:37.232Z"
+    },
+    {
+      "id": "aud_1792947517116",
+      "actorId": "usr_std_1792947517067_d2e14532",
+      "actorRole": "candidate",
+      "action": "STUDENT_RESUBMITTED_DETAILS",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517067_d2e14532",
+      "details": {
+        "rollNumber": "22AD7089"
+      },
+      "createdAt": "2026-10-25T16:58:37.116Z"
+    },
+    {
+      "id": "aud_1792947517101",
+      "actorId": "admin_1",
+      "actorRole": "college_admin",
+      "action": "STUDENT_VERIFICATION_REJECTED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517067_d2e14532",
+      "details": {
+        "studentEmail": "reject_test_1792947516963@kce.ac.in",
+        "reason": "Roll number does not match Karpagam enrollment records."
+      },
+      "createdAt": "2026-10-25T16:58:37.101Z"
+    },
+    {
+      "id": "aud_1792947517080",
+      "actorId": "usr_std_1792947517067_d2e14532",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947517067_d2e14532",
+      "details": {
+        "email": "reject_test_1792947516963@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:37.080Z"
+    },
+    {
+      "id": "aud_1792947517068",
+      "actorId": "usr_std_1792947517067_d2e14532",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947517067_d2e14532",
+      "details": {
+        "collegeEmail": "reject_test_1792947516963@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:37.068Z"
+    },
+    {
+      "id": "aud_1792947516952",
+      "actorId": "admin_1",
+      "actorRole": "college_admin",
+      "action": "STUDENT_APPROVED_AND_ACTIVATED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947516920_9175897b",
+      "details": {
+        "studentEmail": "approve_test_1792947516801@kce.ac.in",
+        "rollNumber": "ROLL_1792947516801",
+        "department": "AIDS"
+      },
+      "createdAt": "2026-10-25T16:58:36.952Z"
+    },
+    {
+      "id": "aud_1792947516937",
+      "actorId": "usr_std_1792947516920_9175897b",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947516920_9175897b",
+      "details": {
+        "email": "approve_test_1792947516801@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:36.937Z"
+    },
+    {
+      "id": "aud_1792947516920",
+      "actorId": "usr_std_1792947516920_9175897b",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947516920_9175897b",
+      "details": {
+        "collegeEmail": "approve_test_1792947516801@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:36.920Z"
+    },
+    {
+      "id": "aud_1792947516790",
+      "actorId": "usr_std_1792947516776_2e54b45c",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947516776_2e54b45c",
+      "details": {
+        "email": "pending_1792947516684@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:36.790Z"
+    },
+    {
+      "id": "aud_1792947516777",
+      "actorId": "usr_std_1792947516776_2e54b45c",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947516776_2e54b45c",
+      "details": {
+        "collegeEmail": "pending_1792947516684@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:36.777Z"
+    },
+    {
+      "id": "aud_1792947516673",
+      "actorId": "usr_std_1792947516649_d28a161e",
+      "actorRole": "candidate",
+      "action": "EMAIL_OTP_VERIFIED",
+      "targetType": "user",
+      "targetId": "usr_std_1792947516649_d28a161e",
+      "details": {
+        "email": "otp_test_1792947516562@kce.ac.in"
+      },
+      "createdAt": "2026-10-25T16:58:36.673Z"
+    },
+    {
+      "id": "aud_1792947516649",
+      "actorId": "usr_std_1792947516649_d28a161e",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947516649_d28a161e",
+      "details": {
+        "collegeEmail": "otp_test_1792947516562@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "ROL***"
+      },
+      "createdAt": "2026-10-25T16:58:36.649Z"
+    },
+    {
+      "id": "aud_1792947516539",
+      "actorId": "usr_std_1792947516537_4d6ceb4e",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947516537_4d6ceb4e",
+      "details": {
+        "collegeEmail": "studenta_1792947516456@kce.ac.in",
+        "department": "AIDS",
+        "rollNumberMasked": "22C***"
+      },
+      "createdAt": "2026-10-25T16:58:36.539Z"
+    },
+    {
+      "id": "aud_1792947513641",
+      "actorId": "usr_superadmin_kce_001",
+      "actorRole": "admin",
+      "action": "USER_SIGNED_IN",
+      "targetType": "user",
+      "targetId": "usr_superadmin_kce_001",
+      "details": {
+        "email": "superadmin@kce.ac.in",
+        "requiresMFA": true
+      },
+      "createdAt": "2026-10-25T16:58:33.641Z"
+    },
+    {
+      "id": "aud_1792947510832",
+      "actorId": "usr_std_1792947510830_682bcfb1",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947510830_682bcfb1",
+      "details": {
+        "collegeEmail": "verify.test.1792947510362@kce.ac.in",
+        "department": "CSE",
+        "rollNumberMasked": "22C***"
+      },
+      "createdAt": "2026-10-25T16:58:30.832Z"
+    },
+    {
+      "id": "aud_1792947507952",
+      "actorId": "usr_std_1792947507950_a05e245d",
+      "actorRole": "candidate",
+      "action": "STUDENT_REGISTERED",
+      "targetType": "student_profile",
+      "targetId": "usr_std_1792947507950_a05e245d",
+      "details": {
+        "collegeEmail": "test.student.1792947507698@kce.ac.in",
+        "department": "CSE",
+        "rollNumberMasked": "22C***"
+      },
+      "createdAt": "2026-10-25T16:58:27.952Z"
+    },
     {
       "id": "aud_1792946028178",
       "actorId": "usr_std_1792946027878_753f1fa3",

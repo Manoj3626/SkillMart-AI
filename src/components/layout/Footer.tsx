@@ -13,7 +13,7 @@ const footerLinks = {
     { href: "/signup", label: "Get Started Free" },
     { href: "/interviews", label: "AI Interview Practice" },
     { href: "/resume", label: "Resume Analyzer" },
-    { href: "/jobs", label: "Job Discovery" },
+    { href: "/skills", label: "Skill Gap Analysis" },
   ],
   Company: [
     { href: "/about", label: "About" },

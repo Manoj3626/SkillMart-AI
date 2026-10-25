@@ -15,7 +15,6 @@ export async function proxy(request: NextRequest) {
     "/interviews",
     "/interview",
     "/resume",
-    "/jobs",
     "/skills",
     "/portfolio",
     "/settings",

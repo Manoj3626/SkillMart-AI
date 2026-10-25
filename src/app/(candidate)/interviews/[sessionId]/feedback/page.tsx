@@ -398,8 +398,8 @@ export default function FeedbackPage() {
         <Link href="/interviews" className="btn btn-secondary btn-lg flex-1 justify-center">
           View History
         </Link>
-        <Link href="/jobs" className="btn btn-outline btn-lg flex-1 justify-center">
-          Find Matching Jobs
+        <Link href="/skills" className="btn btn-outline btn-lg flex-1 justify-center">
+          Analyze Skill Gap
         </Link>
       </div>
     </div>
