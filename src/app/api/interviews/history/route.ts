@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { CollegeAuthService } from "@/lib/auth/collegeAuthStore";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   await connection();
@@ -41,8 +41,16 @@ export async function GET(req: NextRequest) {
     // 2. Fetch from Supabase if configured and merge
     let supabaseSessions: any[] = [];
     try {
-      const supabase = await createClient();
-      const { data } = await supabase
+      let db: any = null;
+      if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        try {
+          db = await createServiceClient();
+        } catch {}
+      }
+      if (!db) {
+        db = await createClient();
+      }
+      const { data } = await db
         .from("interview_sessions")
         .select(`
           id,

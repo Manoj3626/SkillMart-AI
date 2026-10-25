@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { CollegeAuthService } from "@/lib/auth/collegeAuthStore";
 
 // ─── Output schema ─────────────────────────────────────────────────────────
@@ -199,14 +199,58 @@ export async function POST(req: NextRequest) {
 
     // 2. Persist to Supabase when configured
     try {
-      const supabase = await createClient();
-      await supabase.from("interview_feedback").insert({
+      let db: any = null;
+      if (process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        try {
+          db = await createServiceClient();
+        } catch {}
+      }
+      if (!db) {
+        db = await createClient();
+      }
+
+      // Upsert parent interview session
+      const { error: sessionErr } = await db.from("interview_sessions").upsert({
+        id: body.sessionId,
+        user_id: userId,
+        job_role: body.jobRole,
+        interview_type: body.interviewType,
+        difficulty: body.difficulty,
+        experience_level: body.experienceLevel,
+        duration_minutes: 20,
+        status: "completed",
+        started_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+        ended_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+
+      if (sessionErr) {
+        console.warn("[supabase] interview_sessions upsert notice:", sessionErr.message);
+      }
+
+      // Upsert interview feedback record
+      const { error: feedbackErr } = await db.from("interview_feedback").upsert({
         session_id: body.sessionId,
         user_id: userId,
-        ...feedback,
+        overall_score: feedback.overall_score,
+        relevance_score: feedback.relevance_score ?? feedback.overall_score,
+        technical_score: feedback.technical_score ?? null,
+        communication_score: feedback.communication_score,
+        problem_solving_score: feedback.problem_solving_score,
+        completeness_score: feedback.completeness_score,
+        strengths: feedback.strengths ?? [],
+        weaknesses: feedback.weaknesses ?? [],
+        question_feedback: feedback.question_feedback ?? [],
+        recommended_topics: feedback.recommended_topics ?? [],
+        next_session_suggestion: feedback.next_session_suggestion ?? null,
         raw_response: feedback,
-      });
-    } catch {}
+      }, { onConflict: "session_id" });
+
+      if (feedbackErr) {
+        console.warn("[supabase] interview_feedback upsert notice:", feedbackErr.message);
+      }
+    } catch (sbErr: any) {
+      console.warn("[supabase] Failed to save session to Supabase:", sbErr?.message || sbErr);
+    }
 
     return NextResponse.json({ feedback, demo: isDemo });
   } catch (err) {

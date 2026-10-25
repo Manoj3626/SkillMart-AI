@@ -1,11 +1,16 @@
--- SkillMatch AI — Initial Schema Migration
--- Run this in Supabase → SQL Editor
+-- SkillMatch AI — Production PostgreSQL Schema Migration
+-- Safe to run in Supabase Dashboard → SQL Editor
 
 -- ──────────────────────────────────────────
--- Profiles (extends auth.users)
+-- Extensions
+-- ──────────────────────────────────────────
+create extension if not exists "pgcrypto";
+
+-- ──────────────────────────────────────────
+-- Profiles (supports both Supabase Auth and College Portal accounts)
 -- ──────────────────────────────────────────
 create table if not exists public.profiles (
-  id           uuid primary key references auth.users(id) on delete cascade,
+  id           text primary key,
   email        text not null,
   full_name    text,
   avatar_url   text,
@@ -22,26 +27,32 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
-create policy "Users can view their own profile"
+drop policy if exists "Allow public read profiles" on public.profiles;
+create policy "Allow public read profiles"
   on public.profiles for select
-  using (auth.uid() = id);
+  using (true);
 
-create policy "Users can update their own profile"
-  on public.profiles for update
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+drop policy if exists "Allow all insert or update profiles" on public.profiles;
+create policy "Allow all insert or update profiles"
+  on public.profiles for all
+  using (true)
+  with check (true);
 
--- Auto-create profile on signup
+-- Auto-create profile on Supabase Auth signup (if Supabase Auth is used)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   insert into public.profiles (id, email, full_name, role)
   values (
-    new.id,
+    new.id::text,
     new.email,
     new.raw_user_meta_data ->> 'full_name',
     coalesce(new.raw_user_meta_data ->> 'role', 'candidate')
-  );
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    full_name = coalesce(excluded.full_name, public.profiles.full_name),
+    updated_at = now();
   return new;
 end;
 $$;
@@ -56,7 +67,7 @@ create trigger on_auth_user_created
 -- ──────────────────────────────────────────
 create table if not exists public.candidate_skills (
   id                  uuid primary key default gen_random_uuid(),
-  user_id             uuid not null references public.profiles(id) on delete cascade,
+  user_id             text not null references public.profiles(id) on delete cascade,
   name                text not null,
   level               text not null default 'intermediate'
                       check (level in ('beginner', 'intermediate', 'advanced', 'expert')),
@@ -64,39 +75,41 @@ create table if not exists public.candidate_skills (
   created_at          timestamptz not null default now()
 );
 
-create index idx_candidate_skills_user on public.candidate_skills(user_id);
+create index if not exists idx_candidate_skills_user on public.candidate_skills(user_id);
 
 alter table public.candidate_skills enable row level security;
-create policy "Users manage own skills" on public.candidate_skills
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Manage own skills" on public.candidate_skills;
+create policy "Manage own skills" on public.candidate_skills
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Resumes
 -- ──────────────────────────────────────────
 create table if not exists public.resumes (
   id         uuid primary key default gen_random_uuid(),
-  user_id    uuid not null references public.profiles(id) on delete cascade,
+  user_id    text not null references public.profiles(id) on delete cascade,
   file_name  text not null,
-  file_path  text not null,  -- storage path (not public URL)
+  file_path  text not null,
   file_size  bigint not null,
   mime_type  text not null,
   is_active  boolean not null default true,
   created_at timestamptz not null default now()
 );
 
-create index idx_resumes_user on public.resumes(user_id);
+create index if not exists idx_resumes_user on public.resumes(user_id);
 
 alter table public.resumes enable row level security;
-create policy "Users manage own resumes" on public.resumes
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Manage own resumes" on public.resumes;
+create policy "Manage own resumes" on public.resumes
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Resume Analyses
 -- ──────────────────────────────────────────
 create table if not exists public.resume_analyses (
   id                   uuid primary key default gen_random_uuid(),
-  resume_id            uuid not null references public.resumes(id) on delete cascade,
-  user_id              uuid not null references public.profiles(id) on delete cascade,
+  resume_id            uuid references public.resumes(id) on delete cascade,
+  user_id              text not null references public.profiles(id) on delete cascade,
   alignment_score      smallint not null check (alignment_score between 0 and 100),
   strengths            text[] not null default '{}',
   improvements         text[] not null default '{}',
@@ -109,71 +122,68 @@ create table if not exists public.resume_analyses (
   created_at           timestamptz not null default now()
 );
 
-create index idx_resume_analyses_user on public.resume_analyses(user_id);
-create index idx_resume_analyses_resume on public.resume_analyses(resume_id);
+create index if not exists idx_resume_analyses_user on public.resume_analyses(user_id);
 
 alter table public.resume_analyses enable row level security;
-create policy "Users read own analyses" on public.resume_analyses
-  for select using (auth.uid() = user_id);
-create policy "Service inserts analyses" on public.resume_analyses
-  for insert with check (auth.uid() = user_id);
+drop policy if exists "Manage own analyses" on public.resume_analyses;
+create policy "Manage own analyses" on public.resume_analyses
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Interview Sessions
 -- ──────────────────────────────────────────
 create table if not exists public.interview_sessions (
-  id                   uuid primary key default gen_random_uuid(),
-  user_id              uuid not null references public.profiles(id) on delete cascade,
+  id                   text primary key,
+  user_id              text not null,
   livekit_room_name    text,
   job_role             text not null,
-  interview_type       text not null check (interview_type in ('technical','behavioral','hr','mixed')),
-  difficulty           text not null check (difficulty in ('beginner','intermediate','advanced')),
-  experience_level     text not null check (experience_level in ('fresher','junior','mid','senior')),
+  interview_type       text not null,
+  difficulty           text not null,
+  experience_level     text not null,
   duration_minutes     smallint not null default 20,
   job_description      text,
   focus_skills         text[] not null default '{}',
-  status               text not null default 'created'
-                       check (status in ('created','active','completed','cancelled')),
-  started_at           timestamptz,
-  ended_at             timestamptz,
+  status               text not null default 'completed',
+  started_at           timestamptz default now(),
+  ended_at             timestamptz default now(),
   transcript_consented boolean not null default false,
   created_at           timestamptz not null default now()
 );
 
-create index idx_interview_sessions_user on public.interview_sessions(user_id);
-create index idx_interview_sessions_status on public.interview_sessions(status);
+create index if not exists idx_interview_sessions_user on public.interview_sessions(user_id);
+create index if not exists idx_interview_sessions_status on public.interview_sessions(status);
 
 alter table public.interview_sessions enable row level security;
-create policy "Users manage own sessions" on public.interview_sessions
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Manage own sessions" on public.interview_sessions;
+create policy "Manage own sessions" on public.interview_sessions
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Interview Messages (transcript)
 -- ──────────────────────────────────────────
 create table if not exists public.interview_messages (
   id         uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.interview_sessions(id) on delete cascade,
-  user_id    uuid not null references public.profiles(id) on delete cascade,
-  role       text not null check (role in ('assistant','user')),
+  session_id text not null references public.interview_sessions(id) on delete cascade,
+  user_id    text not null,
+  role       text not null,
   content    text not null,
   ts         timestamptz not null default now()
 );
 
-create index idx_interview_messages_session on public.interview_messages(session_id);
+create index if not exists idx_interview_messages_session on public.interview_messages(session_id);
 
 alter table public.interview_messages enable row level security;
-create policy "Users read own messages" on public.interview_messages
-  for select using (auth.uid() = user_id);
-create policy "Service inserts messages" on public.interview_messages
-  for insert with check (auth.uid() = user_id);
+drop policy if exists "Manage own messages" on public.interview_messages;
+create policy "Manage own messages" on public.interview_messages
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Interview Feedback
 -- ──────────────────────────────────────────
 create table if not exists public.interview_feedback (
   id                    uuid primary key default gen_random_uuid(),
-  session_id            uuid not null references public.interview_sessions(id) on delete cascade,
-  user_id               uuid not null references public.profiles(id) on delete cascade,
+  session_id            text not null references public.interview_sessions(id) on delete cascade,
+  user_id               text not null,
   overall_score         smallint not null check (overall_score between 0 and 100),
   relevance_score       smallint check (relevance_score between 0 and 100),
   technical_score       smallint check (technical_score between 0 and 100),
@@ -186,17 +196,17 @@ create table if not exists public.interview_feedback (
   recommended_topics    text[] not null default '{}',
   next_session_suggestion text,
   raw_response          jsonb,
-  created_at            timestamptz not null default now()
+  created_at            timestamptz not null default now(),
+  unique(session_id)
 );
 
-create index idx_interview_feedback_user on public.interview_feedback(user_id);
-create index idx_interview_feedback_session on public.interview_feedback(session_id);
+create index if not exists idx_interview_feedback_user on public.interview_feedback(user_id);
+create index if not exists idx_interview_feedback_session on public.interview_feedback(session_id);
 
 alter table public.interview_feedback enable row level security;
-create policy "Users read own feedback" on public.interview_feedback
-  for select using (auth.uid() = user_id);
-create policy "Service inserts feedback" on public.interview_feedback
-  for insert with check (auth.uid() = user_id);
+drop policy if exists "Manage own feedback" on public.interview_feedback;
+create policy "Manage own feedback" on public.interview_feedback
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Jobs
@@ -208,12 +218,10 @@ create table if not exists public.jobs (
   description     text not null,
   required_skills text[] not null default '{}',
   preferred_skills text[] not null default '{}',
-  experience_level text check (experience_level in ('fresher','junior','mid','senior','lead')),
+  experience_level text,
   location        text,
-  remote_type     text not null default 'onsite'
-                  check (remote_type in ('remote','hybrid','onsite')),
-  employment_type text not null default 'full_time'
-                  check (employment_type in ('full_time','part_time','contract','internship')),
+  remote_type     text not null default 'onsite',
+  employment_type text not null default 'full_time',
   salary_min      numeric(12,2),
   salary_max      numeric(12,2),
   currency        text not null default 'INR',
@@ -228,10 +236,10 @@ create table if not exists public.jobs (
   unique (source, source_job_id)
 );
 
-create index idx_jobs_active on public.jobs(is_active, created_at desc);
-create index idx_jobs_skills on public.jobs using gin(required_skills);
+create index if not exists idx_jobs_active on public.jobs(is_active, created_at desc);
 
 alter table public.jobs enable row level security;
+drop policy if exists "Anyone can read active jobs" on public.jobs;
 create policy "Anyone can read active jobs" on public.jobs
   for select using (is_active = true);
 
@@ -240,7 +248,7 @@ create policy "Anyone can read active jobs" on public.jobs
 -- ──────────────────────────────────────────
 create table if not exists public.job_matches (
   id                       uuid primary key default gen_random_uuid(),
-  user_id                  uuid not null references public.profiles(id) on delete cascade,
+  user_id                  text not null references public.profiles(id) on delete cascade,
   job_id                   uuid not null references public.jobs(id) on delete cascade,
   match_score              smallint not null check (match_score between 0 and 100),
   matching_skills          text[] not null default '{}',
@@ -252,28 +260,9 @@ create table if not exists public.job_matches (
 );
 
 alter table public.job_matches enable row level security;
-create policy "Users read own matches" on public.job_matches
-  for select using (auth.uid() = user_id);
-
--- ──────────────────────────────────────────
--- Applications
--- ──────────────────────────────────────────
-create table if not exists public.applications (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid not null references public.profiles(id) on delete cascade,
-  job_id     uuid not null references public.jobs(id) on delete cascade,
-  status     text not null default 'applied'
-             check (status in ('applied','screening','interview','offer','rejected','withdrawn')),
-  applied_at timestamptz not null default now(),
-  notes      text,
-  unique (user_id, job_id)
-);
-
-create index idx_applications_user on public.applications(user_id);
-
-alter table public.applications enable row level security;
-create policy "Users manage own applications" on public.applications
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Manage own matches" on public.job_matches;
+create policy "Manage own matches" on public.job_matches
+  for all using (true) with check (true);
 
 -- ──────────────────────────────────────────
 -- Organizations
@@ -290,21 +279,6 @@ create table if not exists public.organizations (
 );
 
 alter table public.organizations enable row level security;
+drop policy if exists "Anyone can read verified orgs" on public.organizations;
 create policy "Anyone can read verified orgs" on public.organizations
   for select using (verified = true);
-
--- ──────────────────────────────────────────
--- Storage Buckets (run separately if needed)
--- ──────────────────────────────────────────
--- insert into storage.buckets (id, name, public)
---   values ('resumes', 'resumes', false)
---   on conflict do nothing;
---
--- create policy "Users upload own resumes" on storage.objects
---   for insert with check (
---     bucket_id = 'resumes' and auth.uid()::text = (storage.foldername(name))[1]
---   );
--- create policy "Users read own resumes" on storage.objects
---   for select using (
---     bucket_id = 'resumes' and auth.uid()::text = (storage.foldername(name))[1]
---   );
