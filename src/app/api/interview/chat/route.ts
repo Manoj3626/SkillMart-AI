@@ -35,19 +35,35 @@ export async function POST(req: NextRequest) {
       .map((m: { role: string; content: string }) => `${m.role === "assistant" ? "Interviewer" : "Candidate"}: ${m.content}`)
       .join("\n");
 
+    const isSkipped = userInput.includes("[Skipped") || userInput.trim() === "";
+
     let taskPrompt = "";
     if (isFinalQuestion || questionIndex + 1 >= totalQuestions) {
-      taskPrompt = `This was the FINAL question (${questionIndex + 1} of ${totalQuestions}) of the placement interview.
-1. Acknowledge what the candidate just answered in 1-2 encouraging sentences, noting a specific detail from their response.
-2. Conclude the interview warmly by saying that all questions are completed and you are ready to review the final performance evaluation report.
+      if (isSkipped) {
+        taskPrompt = `The candidate skipped the final question (${questionIndex + 1} of ${totalQuestions}).
+1. Acknowledge smoothly in 1 sentence that it's completely fine.
+2. Conclude the interview warmly by saying that all questions are completed and you will now prepare their evaluation report.
+3. Keep total response under 2 sentences.`;
+      } else {
+        taskPrompt = `This was the FINAL question (${questionIndex + 1} of ${totalQuestions}) of the placement interview.
+1. Acknowledge what the candidate just answered in 1 encouraging sentence, noting a specific detail from their response.
+2. Conclude the interview warmly by saying that all questions are completed and you are now preparing their final performance evaluation report.
 3. Keep total response under 3 sentences.`;
+      }
     } else if (nextQuestion) {
-      taskPrompt = `The candidate just answered Question ${questionIndex + 1} of ${totalQuestions}.
-1. Acknowledge what the candidate answered in 1-2 encouraging sentences, mentioning a specific point they made.
+      if (isSkipped) {
+        taskPrompt = `The candidate skipped Question ${questionIndex + 1} of ${totalQuestions}.
+1. Smoothly say in 1 short phrase that it's no problem.
+2. Transition and ask the next question: "${nextQuestion}"
+3. Keep total response under 2 sentences.`;
+      } else {
+        taskPrompt = `The candidate just answered Question ${questionIndex + 1} of ${totalQuestions}.
+1. Acknowledge what the candidate answered in 1 concise, encouraging sentence mentioning a specific point they made.
 2. Seamlessly transition and ask the next question: "${nextQuestion}"
-3. Keep the total response natural, encouraging, and under 3 to 4 sentences.`;
+3. Keep the total response natural, encouraging, and under 3 sentences.`;
+      }
     } else {
-      taskPrompt = `Provide a concise response (under 3 sentences) acknowledging their answer and prompting them appropriately.`;
+      taskPrompt = `Provide a concise response (under 2 sentences) acknowledging their answer and prompting them appropriately.`;
     }
 
     const prompt = `CANDIDATE RESUME CONTEXT:
@@ -66,18 +82,26 @@ CANDIDATE JUST ANSWERED:
 TASK:
 ${taskPrompt}`;
 
-    const { text: reply } = await generateWithGemini(prompt, {
+    const { text: rawReply } = await generateWithGemini(prompt, {
       systemInstruction,
-      temperature: 0.6,
-      maxOutputTokens: 200,
-      timeoutMs: 15000,
+      temperature: 0.5,
+      maxOutputTokens: 180,
+      timeoutMs: 12000,
     });
 
-    return NextResponse.json({ reply: reply.trim() });
+    const reply = rawReply.trim();
+    return NextResponse.json({
+      reply,
+      nextQuestion: nextQuestion || "",
+      isFinal: isFinalQuestion || questionIndex + 1 >= totalQuestions,
+    });
   } catch (err: any) {
     console.error("[interview/chat error]", err);
+    const fallbackNext = req ? "" : "";
     return NextResponse.json({
-      reply: "Thank you for explaining that. Let's proceed to the next question.",
+      reply: "Thank you for explaining that. Let's proceed to our next question.",
+      nextQuestion: "",
+      isFinal: false,
     });
   }
 }

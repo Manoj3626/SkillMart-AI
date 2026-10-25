@@ -18,9 +18,8 @@ import {
   SkipForward,
   Maximize,
   Minimize,
-  ShieldAlert,
-  CheckCircle2,
   X,
+  CheckCircle2,
 } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 import { toast } from "@/components/ui/Toaster";
@@ -49,26 +48,25 @@ interface InterviewQuestion {
   followUpHints?: string[];
 }
 
+type InterviewPhase = "ready" | "speaking" | "listening" | "processing_answer" | "completed";
+
 export default function InterviewStudioPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const router = useRouter();
 
   const [config, setConfig] = useState<InterviewConfig | null>(null);
+  const [phase, setPhase] = useState<InterviewPhase>("ready");
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [isEvaluating, setIsEvaluating] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [interviewStarted, setInterviewStarted] = useState(false);
-  const [ended, setEnded] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
-  // Focus & Fullscreen states
+  // Fullscreen & Focus Integrity states
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
@@ -82,7 +80,7 @@ export default function InterviewStudioPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSpeakingRef = useRef(false);
 
-  // Load config from sessionStorage or default
+  // Load config from sessionStorage or default to Software Engineer
   useEffect(() => {
     const raw = sessionStorage.getItem(`interview-config-${sessionId}`);
     if (raw) {
@@ -112,7 +110,7 @@ export default function InterviewStudioPage() {
     }
   }, [sessionId]);
 
-  // Request camera + mic
+  // Request camera + mic with robust error reporting
   useEffect(() => {
     async function initMedia() {
       try {
@@ -123,12 +121,13 @@ export default function InterviewStudioPage() {
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "NotAllowedError") {
-          setPermissionError("Camera/Microphone access was denied. Please allow access in browser permissions.");
+          setPermissionError("Camera/Microphone permission was denied. Please allow camera and microphone in your browser bar.");
         } else {
-          setPermissionError("Could not access camera/microphone.");
+          setPermissionError("Could not access camera/microphone device.");
         }
         setMicEnabled(false);
         setCameraEnabled(false);
@@ -139,6 +138,16 @@ export default function InterviewStudioPage() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  // Guarantee video stream stays attached whenever camera is enabled
+  useEffect(() => {
+    if (cameraEnabled && streamRef.current && videoRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      videoRef.current.play().catch(() => {});
+    }
+  }, [cameraEnabled]);
 
   // Fullscreen management
   useEffect(() => {
@@ -168,7 +177,7 @@ export default function InterviewStudioPage() {
   // Visibility / Tab switch integrity monitor
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && interviewStarted && !ended) {
+      if (document.hidden && interviewStarted && phase !== "completed") {
         setTabSwitchCount((prev) => {
           const nextCount = prev + 1;
           setShowTabWarning(true);
@@ -178,9 +187,9 @@ export default function InterviewStudioPage() {
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [interviewStarted, ended]);
+  }, [interviewStarted, phase]);
 
-  // ── Speech Synthesis Engine (Zero-Latency Instant Audio) ──────────────────
+  // ── Speech Synthesis Engine ────────────────────────────────────────────────
   const stopSpeech = useCallback(() => {
     if (audioPlayerRef.current) {
       audioPlayerRef.current.pause();
@@ -190,61 +199,13 @@ export default function InterviewStudioPage() {
       window.speechSynthesis.cancel();
     }
     isSpeakingRef.current = false;
-    setIsAISpeaking(false);
-  }, []);
-
-  const speakWithBrowserSynthesis = useCallback((text: string, onDone?: () => void) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
-      onDone?.();
-      return;
-    }
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.02;
-    utterance.pitch = 1.05;
-
-    // Pick a natural, crisp English voice
-    const voices = window.speechSynthesis.getVoices();
-    const preferred =
-      voices.find(
-        (v) =>
-          v.lang.startsWith("en") &&
-          (v.name.includes("Google") ||
-            v.name.includes("Natural") ||
-            v.name.includes("Samantha") ||
-            v.name.includes("Zira") ||
-            v.name.includes("Jenny") ||
-            v.name.includes("Female"))
-      ) || voices.find((v) => v.lang.startsWith("en"));
-
-    if (preferred) utterance.voice = preferred;
-
-    utterance.onstart = () => {
-      isSpeakingRef.current = true;
-      setIsAISpeaking(true);
-    };
-    utterance.onend = () => {
-      isSpeakingRef.current = false;
-      setIsAISpeaking(false);
-      onDone?.();
-    };
-    utterance.onerror = (e) => {
-      console.warn("SpeechSynthesis error:", e);
-      isSpeakingRef.current = false;
-      setIsAISpeaking(false);
-      onDone?.();
-    };
-
-    window.speechSynthesis.speak(utterance);
   }, []);
 
   const speakAloud = useCallback(
-    async (text: string, onDone?: () => void) => {
+    (text: string, onDone?: () => void) => {
       stopSpeech();
       isSpeakingRef.current = true;
-      setIsAISpeaking(true);
+      setPhase("speaking");
 
       const cleanText = text
         .replace(/[*#_`]/g, "")
@@ -253,25 +214,56 @@ export default function InterviewStudioPage() {
 
       const onSpeechFinished = () => {
         isSpeakingRef.current = false;
-        setIsAISpeaking(false);
         onDone?.();
       };
 
-      // Instant speech delivery:
-      // Browser SpeechSynthesis starts speaking within 50ms without waiting for remote server audio
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        speakWithBrowserSynthesis(cleanText, onSpeechFinished);
+      if (typeof window === "undefined" || !window.speechSynthesis) {
+        onSpeechFinished();
         return;
       }
 
-      onSpeechFinished();
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.02;
+      utterance.pitch = 1.04;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferred =
+        voices.find(
+          (v) =>
+            v.lang.startsWith("en") &&
+            (v.name.includes("Google") ||
+              v.name.includes("Natural") ||
+              v.name.includes("Samantha") ||
+              v.name.includes("Zira") ||
+              v.name.includes("Female"))
+        ) || voices.find((v) => v.lang.startsWith("en"));
+
+      if (preferred) utterance.voice = preferred;
+
+      utterance.onstart = () => {
+        isSpeakingRef.current = true;
+        setPhase("speaking");
+      };
+
+      utterance.onend = () => {
+        onSpeechFinished();
+      };
+
+      utterance.onerror = (e) => {
+        console.warn("SpeechSynthesis error:", e);
+        onSpeechFinished();
+      };
+
+      window.speechSynthesis.speak(utterance);
     },
-    [stopSpeech, speakWithBrowserSynthesis]
+    [stopSpeech]
   );
 
   // ── Speech-to-Text Microphone Engine ──────────────────────────────────────
   const stopListening = useCallback(() => {
-    setIsListening(false);
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -284,10 +276,7 @@ export default function InterviewStudioPage() {
     if (typeof window === "undefined" || isSpeakingRef.current) return;
 
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRec) {
-      setIsListening(false);
-      return;
-    }
+    if (!SpeechRec) return;
 
     try {
       if (recognitionRef.current) {
@@ -302,7 +291,7 @@ export default function InterviewStudioPage() {
       recognition.lang = "en-US";
 
       recognition.onstart = () => {
-        setIsListening(true);
+        setPhase("listening");
       };
 
       recognition.onresult = (event: any) => {
@@ -320,25 +309,22 @@ export default function InterviewStudioPage() {
       };
 
       recognition.onend = () => {
-        if (!isSpeakingRef.current && micEnabled) {
+        if (!isSpeakingRef.current && micEnabled && phase === "listening") {
           try {
             recognition.start();
           } catch {}
-        } else {
-          setIsListening(false);
         }
       };
 
       recognition.start();
       recognitionRef.current = recognition;
-      setIsListening(true);
+      setPhase("listening");
     } catch (err) {
       console.warn("Could not start speech recognition:", err);
-      setIsListening(false);
     }
-  }, [micEnabled]);
+  }, [micEnabled, phase]);
 
-  // ── Ask Specific Question ────────────────────────────────────────────────
+  // ── Ask Initial Question (Stage 3 Zero-Lag Prompting) ─────────────────────
   const askQuestion = useCallback(
     (index: number, qList: InterviewQuestion[], prefixMsg = "") => {
       const targetQ = qList[index];
@@ -357,6 +343,7 @@ export default function InterviewStudioPage() {
       ]);
 
       speakAloud(spokenText, () => {
+        setPhase("listening");
         startListening();
       });
     },
@@ -406,7 +393,7 @@ export default function InterviewStudioPage() {
     const greetingPrefix = `Hello! Welcome to your ${targetRole} placement interview.`;
     askQuestion(0, initialList, greetingPrefix);
 
-    // Asynchronously fetch AI-generated questions in background without blocking initial speech
+    // Asynchronously fetch tailored AI questions in background via low-latency Gemini
     async function prefetchAiQuestions() {
       try {
         const res = await fetch("/api/interview/generate-questions", {
@@ -437,102 +424,6 @@ export default function InterviewStudioPage() {
     prefetchAiQuestions();
   }, [config, interviewStarted, askQuestion]);
 
-  // ── Submit Candidate Answer ──────────────────────────────────────────────
-  const handleAnswerSubmit = async () => {
-    if (!currentAnswer.trim() || isEvaluating) return;
-
-    stopListening();
-    setIsEvaluating(true);
-
-    const answeredText = currentAnswer.trim();
-    setCurrentAnswer("");
-
-    // Add candidate message to transcript
-    const updatedMessages: Message[] = [
-      ...messages,
-      {
-        role: "user",
-        content: answeredText,
-        timestamp: new Date(),
-      },
-    ];
-    setMessages(updatedMessages);
-
-    const isFinal = currentQuestionIndex + 1 >= questions.length;
-    const nextQ = questions[currentQuestionIndex + 1];
-
-    try {
-      const res = await fetch("/api/interview/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
-          currentQuestion: questions[currentQuestionIndex]?.question || "",
-          nextQuestion: nextQ?.question || "",
-          isFinalQuestion: isFinal,
-          questionIndex: currentQuestionIndex,
-          totalQuestions: questions.length,
-        }),
-      });
-
-      let aiReply = "";
-      if (res.ok) {
-        const data = await res.json();
-        aiReply = data.reply || "";
-      }
-
-      if (!aiReply) {
-        aiReply = isFinal
-          ? "Thank you for answering. That completes all our interview questions today. Let's review your final evaluation report."
-          : `Thank you. Let's move on to the next question: ${nextQ?.question}`;
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: aiReply,
-          timestamp: new Date(),
-        },
-      ]);
-
-      speakAloud(aiReply, () => {
-        if (isFinal) {
-          handleEnd(updatedMessages);
-        } else {
-          setCurrentQuestionIndex((prev) => prev + 1);
-          startListening();
-        }
-      });
-    } catch (err) {
-      console.error("Failed to evaluate answer:", err);
-      if (isFinal) {
-        handleEnd(updatedMessages);
-      } else {
-        setCurrentQuestionIndex((prev) => prev + 1);
-        askQuestion(currentQuestionIndex + 1, questions);
-      }
-    } finally {
-      setIsEvaluating(false);
-    }
-  };
-
-  const handleSkipQuestion = () => {
-    setCurrentAnswer("[Skipped this question]");
-    setTimeout(() => {
-      handleAnswerSubmit();
-    }, 100);
-  };
-
-  const handleReplayQuestion = () => {
-    const currentQ = questions[currentQuestionIndex];
-    if (currentQ) {
-      speakAloud(currentQ.question, () => {
-        startListening();
-      });
-    }
-  };
-
   // ── End Interview & Route to Feedback ─────────────────────────────────────
   const handleEnd = useCallback(
     async (finalMessages?: Message[]) => {
@@ -540,7 +431,7 @@ export default function InterviewStudioPage() {
       stopSpeech();
       stopListening();
       streamRef.current?.getTracks().forEach((t) => t.stop());
-      setEnded(true);
+      setPhase("completed");
 
       const transcriptToSave = (finalMessages || messages)
         .map((m) => `${m.role === "assistant" ? "Interviewer" : "Candidate"}: ${m.content}`)
@@ -579,6 +470,107 @@ export default function InterviewStudioPage() {
     [messages, sessionId, config, router, stopListening, stopSpeech]
   );
 
+  // ── Submit Candidate Answer & State Machine Progression ───────────────────
+  const handleAnswerSubmit = async () => {
+    if (!currentAnswer.trim() || phase === "processing_answer") return;
+
+    stopListening();
+    setPhase("processing_answer");
+
+    const answeredText = currentAnswer.trim();
+    setCurrentAnswer("");
+
+    // Add candidate message to transcript
+    const updatedMessages: Message[] = [
+      ...messages,
+      {
+        role: "user",
+        content: answeredText,
+        timestamp: new Date(),
+      },
+    ];
+    setMessages(updatedMessages);
+
+    const nextIndex = currentQuestionIndex + 1;
+    const isFinal = nextIndex >= questions.length;
+    const nextQ = questions[nextIndex];
+
+    try {
+      const res = await fetch("/api/interview/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+          currentQuestion: questions[currentQuestionIndex]?.question || "",
+          nextQuestion: nextQ?.question || "",
+          isFinalQuestion: isFinal,
+          questionIndex: currentQuestionIndex,
+          totalQuestions: questions.length,
+        }),
+      });
+
+      let aiReply = "";
+      if (res.ok) {
+        const data = await res.json();
+        aiReply = data.reply || "";
+      }
+
+      if (!aiReply) {
+        aiReply = isFinal
+          ? "Thank you for answering. That completes all our interview questions today. Let's review your final evaluation report."
+          : `Thank you for sharing that. Let's move on to the next question: ${nextQ?.question}`;
+      }
+
+      // Update Live Question Card to next question immediately
+      if (!isFinal) {
+        setCurrentQuestionIndex(nextIndex);
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: aiReply,
+          timestamp: new Date(),
+        },
+      ]);
+
+      speakAloud(aiReply, () => {
+        if (isFinal) {
+          handleEnd(updatedMessages);
+        } else {
+          setPhase("listening");
+          startListening();
+        }
+      });
+    } catch (err) {
+      console.error("Failed to evaluate answer:", err);
+      if (isFinal) {
+        handleEnd(updatedMessages);
+      } else {
+        setCurrentQuestionIndex(nextIndex);
+        askQuestion(nextIndex, questions);
+      }
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    setCurrentAnswer("[Skipped this question]");
+    setTimeout(() => {
+      handleAnswerSubmit();
+    }, 100);
+  };
+
+  const handleReplayQuestion = () => {
+    const activeQ = questions[currentQuestionIndex];
+    if (activeQ) {
+      speakAloud(activeQ.question, () => {
+        setPhase("listening");
+        startListening();
+      });
+    }
+  };
+
   // Timer
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -608,7 +600,7 @@ export default function InterviewStudioPage() {
       setMicEnabled(audioTrack.enabled);
       if (!audioTrack.enabled) {
         stopListening();
-      } else if (!isAISpeaking) {
+      } else if (phase === "listening") {
         startListening();
       }
     }
@@ -623,7 +615,7 @@ export default function InterviewStudioPage() {
     }
   }
 
-  if (ended) {
+  if (phase === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-surface-900)] text-white p-8 text-center animate-fade-in">
         <div className="w-16 h-16 rounded-full bg-emerald-600/30 border border-emerald-500/50 flex items-center justify-center mb-4 text-3xl shadow-xl">
@@ -641,6 +633,9 @@ export default function InterviewStudioPage() {
   }
 
   const currentQ = questions[currentQuestionIndex];
+  const isAISpeaking = phase === "speaking";
+  const isListening = phase === "listening";
+  const isEvaluating = phase === "processing_answer";
 
   return (
     <div className="flex flex-col h-screen bg-[var(--color-surface-900)] text-white overflow-hidden relative">
@@ -744,14 +739,14 @@ export default function InterviewStudioPage() {
               <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
                 <div className={`status-dot ${isAISpeaking ? "status-dot-green animate-pulse" : isListening ? "status-dot-yellow" : "status-dot-gray"}`} />
                 <span className="text-[10px] font-medium text-white/90">
-                  {isAISpeaking ? "Speaking aloud" : isListening ? "Listening to your answer" : "Ready"}
+                  {isAISpeaking ? "Speaking aloud" : isListening ? "Listening to your answer" : isEvaluating ? "Processing answer" : "Ready"}
                 </span>
               </div>
 
               {/* Repeat voice button */}
               <button
                 onClick={handleReplayQuestion}
-                disabled={isAISpeaking}
+                disabled={isAISpeaking || isEvaluating}
                 className="absolute top-3 right-3 flex items-center gap-1 text-[11px] bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full text-white/80 disabled:opacity-40 transition-colors border border-white/10"
                 title="Replay Question Audio"
               >
@@ -760,26 +755,31 @@ export default function InterviewStudioPage() {
               </button>
             </div>
 
-            {/* Candidate camera tile */}
-            <div className="video-tile relative bg-[var(--color-surface-950)] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
-              {cameraEnabled ? (
-                <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-              ) : (
+            {/* Candidate camera tile (persistent video stream attaching properly) */}
+            <div className="video-tile relative bg-[var(--color-surface-950)] border border-white/10 rounded-2xl overflow-hidden shadow-lg flex items-center justify-center">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className={`w-full h-full object-cover ${cameraEnabled ? "block" : "hidden"}`}
+              />
+              {!cameraEnabled && (
                 <div className="flex flex-col items-center justify-center h-full gap-3 p-4">
                   <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
                     <VideoOff size={22} className="text-white/40" />
                   </div>
-                  <span className="text-xs text-white/40">Camera is turned off</span>
+                  <span className="text-xs text-white/40 font-medium">Camera is turned off</span>
                 </div>
               )}
-              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 z-10">
                 <div className={`status-dot ${micEnabled ? "status-dot-green" : "status-dot-red"}`} />
                 <span className="text-[10px] font-medium text-white/90">You (Candidate)</span>
               </div>
             </div>
           </div>
 
-          {/* Dedicated Live Question Card (Prominent, Unmissable, Protected against copy) */}
+          {/* Dedicated Live Question Card */}
           <div
             className="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4 select-none flex flex-col gap-1.5 shrink-0 shadow-sm"
             onCopy={(e) => {
@@ -793,7 +793,7 @@ export default function InterviewStudioPage() {
               </span>
               <button
                 onClick={handleReplayQuestion}
-                disabled={isAISpeaking}
+                disabled={isAISpeaking || isEvaluating}
                 className="text-white/60 hover:text-white flex items-center gap-1 transition-colors text-[11px]"
               >
                 <Volume2 size={12} /> Repeat audio
@@ -818,7 +818,7 @@ export default function InterviewStudioPage() {
                   </span>
                 ) : isEvaluating ? (
                   <span className="inline-flex items-center gap-1 text-teal-300">
-                    <RefreshCw size={12} className="animate-spin" /> Evaluating answer & preparing response...
+                    <RefreshCw size={12} className="animate-spin" /> Evaluating answer & generating tailored response...
                   </span>
                 ) : (
                   <span>Answer box (Voice transcript or type below):</span>
@@ -858,6 +858,8 @@ export default function InterviewStudioPage() {
                 placeholder={
                   isAISpeaking
                     ? "Interviewer is speaking aloud... Your spoken answer will be captured when she finishes."
+                    : isEvaluating
+                    ? "Evaluating your answer..."
                     : "Speak through your microphone or type your response here..."
                 }
                 rows={2}
@@ -988,7 +990,7 @@ export default function InterviewStudioPage() {
             </div>
             <h3 className="text-lg font-bold mb-2">End Interview Session?</h3>
             <p className="text-xs text-white/60 mb-6 leading-relaxed">
-              Are you sure you want to end this interview now? All questions answered so far will be compiled into your placement readiness score and comprehensive evaluation report.
+              Are you sure you want to exit? Your answers so far will be compiled into your placement readiness score and comprehensive evaluation report.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
